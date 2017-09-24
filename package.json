@@ -1,0 +1,19 @@
+{
+  "name": "tickr",
+  "version": "1.0.0",
+  "description": "An app for checking the stock market",
+  "main": "./src/server.js",
+  "scripts": {
+    "start":"node ./src/server.js",
+    "pretest":"eslint ./src --fix",
+    "test": "echo \"Tests complete\""
+  },
+  "author": "Ryan Geyer",
+  "license": "ISC",
+  "dependencies": {
+    "csv": "^1.1.1",
+    "eslint": "^4.7.2",
+    "eslint-config-airbnb": "^15.1.0",
+    "eslint-plugin-import": "^2.7.0"
+  }
+}
