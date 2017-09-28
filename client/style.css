@@ -79,3 +79,7 @@ nav{
     font-size: 0.6em;  
     vertical-align: middle;       
 }
+
+canvas{
+    box-shadow: 1px 1px 1px #444;
+}

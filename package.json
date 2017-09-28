@@ -4,9 +4,10 @@
   "description": "An app for checking the stock market",
   "main": "./src/server.js",
   "scripts": {
-    "start": "nodemon ./src/server.js",
+    "start": "node ./src/server.js",
     "pretest": "eslint ./src --fix",
-    "test": "echo \"Tests complete\""
+    "test": "echo \"Tests complete\"",
+    "nodemon": "nodemon"
   },
   "author": "Ryan Geyer",
   "license": "ISC",

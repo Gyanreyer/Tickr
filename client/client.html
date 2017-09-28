@@ -22,7 +22,7 @@
         let lastWordSearched = "";
 
         const timeSeries = [
-            'TIME_SERIES_INTRADAY&interval=1min',
+            'TIME_SERIES_INTRADAY&interval=5min',
             'TIME_SERIES_DAILY',
             'TIME_SERIES_WEEKLY',
             'TIME_SERIES_MONTHLY',
@@ -39,57 +39,95 @@
             MAX:7
         };
 
+        class DataPoint{
+            constructor(timeString,price){
+                //Split the time string to get timestamp and then split that to get an array to represent time as [hour,min,sec]
+                const timeArr = timeString.split(' ')[1].split(':');
+
+                const hour = parseInt(timeArr[0]);
+                const min = parseInt(timeArr[1]);
+
+                this.timeStamp = `${1 + (hour-1)%12}:${timeArr[1]} ${hour<12?'am':'pm'}`;//Store timestamp as a string in HH:MM am/pm format
+
+                this.timePercentage = (hour*60 + min - 570)/390;//Store time as percentage of the trading day (0-1 where 0 is 9:30am and 1 is 4:00pm)
+
+                //Store price for this point in time
+                this.price = price;
+            }
+
+            getDrawCoords(width,baseHeight,minPrice,yScalar){
+
+                return {
+                    x: width * this.timePercentage,
+                    y:baseHeight - (this.price-minPrice) * yScalar
+                };
+            }
+        }
+
         const displayStockData = (period)=>{
             //Get canvas and ctx for drawing
             const canvas = document.getElementById("visualizationCanvas");
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0,0,canvas.width,canvas.height);
 
-            ctx.lineWidth = 5;
+            ctx.lineWidth = 2;
 
             //Derive an array of data pts from the data... somehow...
             if(period === dataPeriod.DAY){
                 const intraKeys = Object.keys(loadedStockData.intraday);
                 const latestDate = intraKeys[0].split(' ')[0];
 
-                //Use this to filter out anything that doesn't have current date
+                //Use latest date to filter out anything that isn't relevant to today's data (or the last trading day's data if it's a weekend/after hours)
                 const relevantKeys = intraKeys.filter((key)=>{
                     return key.startsWith(latestDate);
                 });
 
-                const numPoints = relevantKeys.length;
-                const pointInterval = canvas.width/numPoints;
+                const lastPointInd = relevantKeys.length-1;
 
-                const openPrice = parseFloat(loadedStockData.intraday[relevantKeys[numPoints-1]]['1. open']);
-                let min = openPrice;
-                let max = openPrice;
-                let avg = openPrice;
+                //const openPrice = parseFloat(loadedStockData.intraday[relevantKeys[lastPointInd]]['4. close']);
+                let minPrice = Number.POSITIVE_INFINITY;
+                let maxPrice = Number.NEGATIVE_INFINITY;
 
-                const dataPoints = [openPrice];
+                const dataPoints = [];
 
-                for(let i = numPoints-2; i >= 0; i--){
-                    const newData = parseFloat(loadedStockData.intraday[relevantKeys[i]]['1. open']);
-                    dataPoints.push(newData);
+                for(let i = lastPointInd; i >= 0; i--){
+                    const timeString = relevantKeys[i];
+                    const price = parseFloat(loadedStockData.intraday[timeString]['4. close']).toFixed(2);
+                    dataPoints.push(new DataPoint(timeString,price));
 
-                    if(newData > max) max = newData;
-                    else if(newData < min) min = newData;
-
-                    avg += newData;
+                    if(price > maxPrice) maxPrice = price;
+                    else if(price < minPrice) minPrice = price;
                 }
+                
+                const width = canvas.width;
+                const height = canvas.height;
+                const workingHeightPercentage = 0.85;
+                const baseHeight = height - (height * (1-workingHeightPercentage)/2);
+                const yScalar = workingHeightPercentage * height/(maxPrice-minPrice);
 
-                avg /= dataPoints.length;
+                //Draw dotted line for open price
+                ctx.strokeStyle = "#999";
+                ctx.setLineDash([10,10]);
+                ctx.lineCap = "butt";
 
-                const halfHeight = canvas.height/2;
-                const yScalar = (halfHeight*.8)/(max-avg);
+                const startPt = dataPoints[0].getDrawCoords(width,baseHeight,minPrice,yScalar);
 
                 ctx.beginPath();
-                ctx.moveTo(0,halfHeight - (dataPoints[0]-avg)*yScalar);
-                for(let i = 1; i < numPoints; i++){
-                    ctx.lineTo(pointInterval*i,halfHeight - (dataPoints[i]-avg)*yScalar);
-                    //console.log(halfHeight - (dataPoints[i]-avg)*yScalar);
-                    
-                }
+                ctx.moveTo(0,startPt.y);
+                ctx.lineTo(canvas.width,startPt.y);
+                ctx.stroke();
+       
+                //Draw stock data
+                ctx.setLineDash([]);
+                ctx.lineCap = "round";
+                ctx.strokeStyle = dataPoints[lastPointInd].price >= dataPoints[0].price ? "green" : "red";
 
+                ctx.beginPath();
+                ctx.moveTo(startPt.x,startPt.y);
+                for(let i = 1; i <= lastPointInd; i++){
+                    const pt = dataPoints[i].getDrawCoords(width,baseHeight,minPrice,yScalar);
+                    ctx.lineTo(pt.x,pt.y);                    
+                }
                 ctx.stroke();
 
                 console.log("done");
