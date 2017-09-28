@@ -1,0 +1,7 @@
+{
+    "watch":[
+        "client",
+        "src"
+    ],
+    "ext":"js json html css"
+}

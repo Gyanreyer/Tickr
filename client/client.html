@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Tickr - Stock prices at your fingertips</title>
+    <link rel="stylesheet" type="text/css" href="/style.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>
+
+    <script type="text/babel">
+        /*class loadedStockData{
+            
+            constructor(symbol){
+                this.data = [];
+            }
+
+            loadData(timeSeries){
+
+            }
+
+        }*/
+        
+        let lastWordSearched = "";
+
+        const timeSeries = [
+            'TIME_SERIES_INTRADAY&interval=1min',
+            'TIME_SERIES_DAILY',
+            'TIME_SERIES_WEEKLY',
+            'TIME_SERIES_MONTHLY',
+        ];
+
+        const dataPeriod = {
+            DAY:0,
+            WEEK:1,
+            MONTH:2,
+            THREEMONTH:3,
+            SIXMONTH:4,
+            YEAR:5,
+            FIVEYEAR:6,
+            MAX:7
+        };
+
+        const displayStockData = (period)=>{
+            //Get canvas and ctx for drawing
+            const canvas = document.getElementById("visualizationCanvas");
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+
+            ctx.lineWidth = 5;
+
+            //Derive an array of data pts from the data... somehow...
+            if(period === dataPeriod.DAY){
+                const intraKeys = Object.keys(loadedStockData.intraday);
+                const latestDate = intraKeys[0].split(' ')[0];
+
+                //Use this to filter out anything that doesn't have current date
+                const relevantKeys = intraKeys.filter((key)=>{
+                    return key.startsWith(latestDate);
+                });
+
+                const numPoints = relevantKeys.length;
+                const pointInterval = canvas.width/numPoints;
+
+                const openPrice = parseFloat(loadedStockData.intraday[relevantKeys[numPoints-1]]['1. open']);
+                let min = openPrice;
+                let max = openPrice;
+                let avg = openPrice;
+
+                const dataPoints = [openPrice];
+
+                for(let i = numPoints-2; i >= 0; i--){
+                    const newData = parseFloat(loadedStockData.intraday[relevantKeys[i]]['1. open']);
+                    dataPoints.push(newData);
+
+                    if(newData > max) max = newData;
+                    else if(newData < min) min = newData;
+
+                    avg += newData;
+                }
+
+                avg /= dataPoints.length;
+
+                const halfHeight = canvas.height/2;
+                const yScalar = (halfHeight*.8)/(max-avg);
+
+                ctx.beginPath();
+                ctx.moveTo(0,halfHeight - (dataPoints[0]-avg)*yScalar);
+                for(let i = 1; i < numPoints; i++){
+                    ctx.lineTo(pointInterval*i,halfHeight - (dataPoints[i]-avg)*yScalar);
+                    //console.log(halfHeight - (dataPoints[i]-avg)*yScalar);
+                    
+                }
+
+                ctx.stroke();
+
+                console.log("done");
+            }
+            
+
+        }
+
+        const loadedStockData = {
+            clearData : function(){
+                this.intraday = null;
+                this.daily = null;
+                this.weekly = null;
+                this.monthly = null;
+            },
+            addData: function(data,time){
+                switch (time) {
+                    case 0:
+                        this.intraday = data;
+                        displayStockData(dataPeriod.DAY);
+                        break;
+                    case 1:
+                        this.daily = data;
+                        break;
+                    case 2:
+                        this.weekly = data;
+                        break;
+                    case 3:
+                        this.monthly = data;
+                        break;
+                }
+
+                this.checkIfComplete();//Check if all data is loaded yet
+            },
+            checkIfComplete: function(){
+                if(this.intraday && this.daily && this.weekly && this.monthly){
+                    //displayStockData(dataPeriod.DAY);
+                }
+            }
+        };
+
+        const parseStockData = (response) =>{            
+            if(!response) return null;
+
+            const parsedResponse = JSON.parse(response);
+            const data = parsedResponse[Object.keys(parsedResponse)[1]];
+
+            return data;
+        }
+
+        const sendStockRequest = (method,url,time)=>{
+            const xhr = new XMLHttpRequest();
+
+            xhr.open(method,url);
+
+            xhr.setRequestHeader('Accept','application/json',true);
+
+            xhr.onload = () =>{
+                const parsedResponse = parseStockData(xhr.response);
+
+                if(parsedResponse)
+                    loadedStockData.addData(parsedResponse,time);
+            };
+
+            xhr.send();
+        };
+
+        const loadStockData = (method,symbol)=>{
+            const xhr = new XMLHttpRequest();
+
+            loadedStockData.clearData();
+
+            for(let i = 0; i < timeSeries.length; i++){
+                sendStockRequest(method,`https://www.alphavantage.co/query?function=${timeSeries[i]}&symbol=${symbol}&outputsize=full&apikey=LA0ZIQVVE5KWHTGH`,i);
+            }
+        };
+
+        const clearSearchResults = () =>{
+            //Results element where search results will be displayed
+            const results = document.getElementById('searchResults');            
+            //Clear results
+            while(results.firstChild){
+                results.removeChild(results.firstChild);
+            }
+
+            results.style.height = 0;
+        }
+
+        const handleSearchResponse = (xhr,parseResponse) => {
+            if(!parseResponse) return;
+
+            //Results element where search results will be displayed
+            const results = document.getElementById('searchResults');            
+            
+            clearSearchResults();
+
+            const companiesResult = JSON.parse(xhr.response).companies;//Get list of companies from response
+
+            if(companiesResult.length === 0){
+                companiesResult.push({symbol:"No results...",name:"",});
+            }
+
+            //Display companies in results element
+            for(let i = 0; i < companiesResult.length; i++){
+                const company = companiesResult[i];
+
+                const t = document.createElement('span');
+                t.className = 'searchSymbol';
+                t.textContent = company.symbol;
+
+                const n = document.createElement('span');
+                n.className = 'searchName';
+                n.innerHTML = company.name;//Slower but need to parse as HTML for escape characters to work properly
+
+                const c = document.createElement('div');
+                c.className = 'searchCompany';
+
+                c.appendChild(t);
+                c.appendChild(n);
+
+                results.appendChild(c);
+
+                c.addEventListener('click',()=>{
+                    clearSearchResults();
+                    loadStockData('get',company.symbol);
+                });
+            }
+
+            const resultsHeight = document.querySelector('.searchCompany').clientHeight * companiesResult.length;
+
+            results.style.height = `${resultsHeight}px`;
+            
+        };
+        
+        const sendSearchRequest = (method,request)=>{
+                        
+            const xhr = new XMLHttpRequest();
+
+            xhr.open(method,request,true);
+
+            xhr.setRequestHeader('Accept','application/json');
+
+            xhr.onload = () => handleSearchResponse(xhr,method === 'get');
+
+            xhr.send();
+        };        
+        
+        const init = ()=>{
+            const searchBar = document.getElementById("searchBar");
+
+            //Submit search when search bar updates
+            const sendSearch = ()=>{
+                const search = searchBar.value.trim();
+
+                if(lastWordSearched === search) return;
+
+                lastWordSearched = search;
+
+                if(search === ''){
+                    clearSearchResults();
+                    return;
+                }
+
+                const method = 'get';
+                const request = `/search?${search}`;
+                sendSearchRequest(method,request);
+            }     
+            
+            searchBar.addEventListener('keyup',sendSearch);
+            searchBar.addEventListener('focus',sendSearch);
+            document.getElementById("search").addEventListener('blur',()=>{
+                clearSearchResults();
+                lastWordSearched="";
+            });
+        };
+
+        window.onload = init;
+    
+    </script>
+</head>
+<body>
+    <nav>
+        <div id="search">
+            <input id="searchBar" type="text" name="search" autocomplete="off">
+            <div id="searchResults"></div>
+        </div>
+    </nav>
+
+    <canvas id="visualizationCanvas" width="1280" height="720"></canvas>
+    <div id="stockInfo"></div>
+</body>
+
+</html>
