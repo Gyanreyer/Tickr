@@ -1,0 +1,7 @@
+const handleStockDataResponse = () =>{
+
+};
+
+const displayStockPage = () =>{
+
+};

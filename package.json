@@ -2,21 +2,28 @@
   "name": "tickr",
   "version": "1.0.0",
   "description": "An app for checking the stock market",
-  "main": "./src/server.js",
+  "main": "./server/app.js",
   "scripts": {
-    "start": "node ./src/server.js",
-    "pretest": "eslint ./src --fix",
+    "build": "babel ./client --out-file ./hosted/bundle.js",
+    "watch": "babel --watch ./client --out-file ./hosted/bundle.js",
+    "start": "node ./server/app.js",
+    "pretest": "eslint ./server --fix",
     "test": "echo \"Tests complete\"",
     "nodemon": "nodemon"
   },
   "author": "Ryan Geyer",
   "license": "ISC",
   "dependencies": {
+    "d3": "^4.10.2",
     "eslint": "^4.7.2",
     "eslint-config-airbnb": "^15.1.0",
     "eslint-plugin-import": "^2.7.0",
     "fast-csv": "^2.4.0",
     "fuse.js": "^3.1.0",
     "request": "^2.82.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.0"
   }
 }

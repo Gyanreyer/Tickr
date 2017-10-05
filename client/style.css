@@ -51,7 +51,7 @@ nav{
     box-shadow: 1px 1px 1px #444;
 }
 
-.searchCompany{
+#searchResults div{
     padding: 0.5em 10px;
     height: 1em;
 
@@ -60,11 +60,11 @@ nav{
     cursor: pointer;
 }
 
-.searchCompany.green:hover{
+#searchResults div.green:hover{
     background-color: #AEA;
 }
 
-.searchCompany.red:hover{
+#searchResults div.red:hover{
     background-color: #E99;
 }
 
