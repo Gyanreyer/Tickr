@@ -17,7 +17,7 @@ const getCSS = (request, response) => {
 };
 
 const getJS = (request, response) => {
-  response.writeHead(200, {'Content-Type': 'text/javascript'});
+  response.writeHead(200, { 'Content-Type': 'text/javascript' });
   response.write(js);
   response.end();
 };

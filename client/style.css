@@ -80,6 +80,9 @@ nav{
     vertical-align: middle;       
 }
 
-canvas{
+#visualization{
+    width: 90%;
+    margin: 2% 5%;
     box-shadow: 1px 1px 1px #444;
 }
+

@@ -14,7 +14,6 @@
   "author": "Ryan Geyer",
   "license": "ISC",
   "dependencies": {
-    "d3": "^4.10.2",
     "eslint": "^4.7.2",
     "eslint-config-airbnb": "^15.1.0",
     "eslint-plugin-import": "^2.7.0",

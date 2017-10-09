@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="utf-8">
     <title>Tickr - Stock prices at your fingertips</title>
     <link rel="stylesheet" type="text/css" href="/style.css">    
     <script src="https://d3js.org/d3.v4.min.js"></script>
@@ -14,11 +15,9 @@
     </nav>
 
     <div id="main">
-
+        <canvas id="visualization" width="1920" height="720"></canvas>
+        <div id="stockInfo"></div>
     </div>
-
-    <!--<canvas id="visualizationCanvas" width="1280" height="720"></canvas>
-    <div id="stockInfo"></div>-->
 
     <script src = "/bundle.js"></script>
 </body>

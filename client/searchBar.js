@@ -54,22 +54,23 @@ const handleSearchResponse = (responseData)=>{
         nameSpan.className = 'searchName';
         nameSpan.innerHTML = stock.name;
 
-        const result = document.createElement('a');
-        result.href = `/stock?symbol=${stock.symbol}`;
+        const result = document.createElement('div');
+        //result.href = `/stock?symbol=${stock.symbol}`;
 
-        resultDiv.appendChild(symbolSpan);
-        resultDiv.appendChild(nameSpan);
+        result.appendChild(symbolSpan);
+        result.appendChild(nameSpan);
 
-        /*resultDiv.addEventListener('click',()=>{
+        result.addEventListener('click',()=>{
             clearSearchResults();
-            //sendRequest(requestMethodEnum.get,requestTypeEnum.getStockPage,{symbol:stock.symbol});
+            sendRequest(requestMethodEnum.get,requestTypeEnum.getStockData,{symbol:stock.symbol,timespan:'DAY'});
         });
 
-        searchResults.appendChild(resultDiv);
+        searchResults.appendChild(result);
 
-        resultsHeight += resultDiv.clientHeight;
+        resultsHeight += result.clientHeight;
+        //console.log(result.clientHeight);
     }
-    
+
     searchResults.style.height = `${resultsHeight}px`;
 };
 
@@ -79,8 +80,8 @@ const handleSearchResponse = (responseData)=>{
 
     searchBar.addEventListener('keyup',()=>sendSearch(searchBar.value));
     searchBar.addEventListener('focus',()=>sendSearch(searchBar.value));
-    searchBar.addEventListener('blur',()=>{
+    /*searchBar.addEventListener('blur',()=>{
         clearSearchResults();
         lastWordSearched = '';
-    });
+    });*/
 })();

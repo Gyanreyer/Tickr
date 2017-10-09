@@ -16,7 +16,9 @@ var requestTypeEnum = {
 
 //Take server response and send it off to appropriate area to be handled
 var handleResponse = function handleResponse(xhr, responseType) {
-    if (responseType === requestTypeEnum.search) handleSearchResponse(JSON.parse(xhr.response));else if (responseType === requestTypeEnum.getStockData) handleStockDataResponse(JSON.parse(xhr.response));else if (responseType === requestTypeEnum.getStockPage) displayStockPage(xhr.response);
+    if (responseType === requestTypeEnum.search) handleSearchResponse(JSON.parse(xhr.response));else if (responseType === requestTypeEnum.getStockData) displayStockData(JSON.parse(xhr.response).data);
+    //else if(responseType === requestTypeEnum.getStockPage)
+    //displayStockPage(xhr.response);
 };
 
 //Takes what method we should use, type of request from enum,
@@ -96,7 +98,7 @@ var handleSearchResponse = function handleSearchResponse(responseData) {
         resultsHeight = resultDiv.clientHeight;
     }
 
-    for (var i = 0; i < responseData.stocks.length; i++) {
+    var _loop = function _loop(i) {
         var stock = responseData.stocks[i];
 
         var symbolSpan = document.createElement('span');
@@ -107,19 +109,25 @@ var handleSearchResponse = function handleSearchResponse(responseData) {
         nameSpan.className = 'searchName';
         nameSpan.innerHTML = stock.name;
 
-        var _resultDiv = document.createElement('div');
+        var result = document.createElement('div');
+        //result.href = `/stock?symbol=${stock.symbol}`;
 
-        _resultDiv.appendChild(symbolSpan);
-        _resultDiv.appendChild(nameSpan);
+        result.appendChild(symbolSpan);
+        result.appendChild(nameSpan);
 
-        _resultDiv.addEventListener('click', function () {
+        result.addEventListener('click', function () {
             clearSearchResults();
-            //sendRequest(requestMethodEnum.get,requestTypeEnum.getStockPage,{symbol:stock.symbol});
+            sendRequest(requestMethodEnum.get, requestTypeEnum.getStockData, { symbol: stock.symbol, timespan: 'DAY' });
         });
 
-        searchResults.appendChild(_resultDiv);
+        searchResults.appendChild(result);
 
-        resultsHeight += _resultDiv.clientHeight;
+        resultsHeight += result.clientHeight;
+        //console.log(result.clientHeight);
+    };
+
+    for (var i = 0; i < responseData.stocks.length; i++) {
+        _loop(i);
     }
 
     searchResults.style.height = resultsHeight + 'px';
@@ -135,13 +143,90 @@ var handleSearchResponse = function handleSearchResponse(responseData) {
     searchBar.addEventListener('focus', function () {
         return sendSearch(searchBar.value);
     });
-    searchBar.addEventListener('blur', function () {
+    /*searchBar.addEventListener('blur',()=>{
         clearSearchResults();
         lastWordSearched = '';
-    });
+    });*/
 })();
+/*const drawData = (data)=>{
+    const graph = d3.select('#graph');
+    
+    const width = graph.attr('width'),
+          height = graph.attr('height');
+    
+    const yScale = d3.scale.linear()
+        .domain([d3.min(data), d3.max(data)])
+        .range([height*0.05,height*0.95]);
+    
+    const xScale = d3.time.scale()
+        .range(0,width);
+
+    const nestedData = d3.nest()
+        .key(d=>{return d.price;})
+        .key(d=>{return d.timestamp;})
+        .entries(data);
+
+    const min = d3.min(nestedData, d=>{
+        return d3.min(d.values, dat=>{return dat.values.length;});
+    });
+
+    const max = d3.max(nestedData, d=>{
+        return d3.max(d.values, dat=>{return dat.values.length;});
+    });
+};
+*/
 "use strict";
+'use strict';
 
 var handleStockDataResponse = function handleStockDataResponse() {};
 
-var displayStockPage = function displayStockPage() {};
+var displayStockData = function displayStockData(data) {
+
+    var canvas = document.getElementById('visualization');
+    var ctx = canvas.getContext('2d');
+
+    var width = canvas.width;
+    var height = canvas.height;
+
+    var adjustedData = [];
+
+    var min = Number.POSITIVE_INFINITY,
+        max = Number.NEGATIVE_INFINITY;
+
+    for (var i = 0; i < data.length; i++) {
+        var p = data[i].price;
+
+        if (p < min) min = p;
+        if (p > max) max = p;
+    }
+    var startY = 0.95 * height;
+    var yScalar = 0.9 * height / (max - min);
+    var pointDistX = width / (data.length - 1);
+
+    var startPrice = startY - (data[0].price - min) * yScalar;
+
+    ctx.clearRect(0, 0, width, height);
+
+    //Draw dotted line for open price
+    ctx.strokeStyle = '#999';
+    ctx.setLineDash([10, 10]);
+    ctx.lineCap = 'butt';
+
+    ctx.beginPath();
+    ctx.moveTo(0, startPrice);
+    ctx.lineTo(canvas.width, startPrice);
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = data[data.length - 1].price > data[0].price ? 'green' : 'red';
+
+    ctx.beginPath();
+    ctx.moveTo(0, startPrice);
+
+    for (var _i = 1; _i < data.length; _i++) {
+        ctx.lineTo(_i * pointDistX, startY - (data[_i].price - min) * yScalar);
+    }
+
+    ctx.stroke();
+};
