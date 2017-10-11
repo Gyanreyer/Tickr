@@ -2,7 +2,6 @@ body{
     font-family: sans-serif;
     padding: 0;
     margin: 0;
-    background-color: #888;
 }
 
 nav{
@@ -10,16 +9,8 @@ nav{
     padding: 10px 0;
 }
 
-.green{
-    background-color: #9D9 !important;
-}
-
-.red{
-    background-color: #D88 !important;
-}
-
 #search{
-    margin-left: 5%;
+    margin-left: 1%;
 }
 
 #searchBar{
@@ -84,9 +75,8 @@ nav{
 }
 
 #visContainer{
-    width: 90%;
-    margin: 1% 5% 0 5%;
-    box-shadow: 1px 1px 1px #444;
+    width: 100%;
+    margin: 0;
     background-color: white;
     position: relative;
     display: block;
@@ -95,13 +85,13 @@ nav{
 
 canvas{
     width: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
 }
 
 #overlay{
     z-index: 2;
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 #visualization{
@@ -110,15 +100,18 @@ canvas{
 
 #stockInfo{
     position: relative;
-
-    width: 88%;
-    margin: 0 5% 2% 5%;
-    box-shadow: 1px 1px 1px #444;
+    width: 100%;
     background-color: white;
-    display: flex;
-    flex-direction: row;
-    padding: 1%;
+
+    padding: 1em 0;
     text-align: center;
+}
+
+#nameContainer{
+    position: absolute;
+    left: 2em;
+
+    min-width: 5%;
 }
 
 #infoSymbol{
@@ -128,37 +121,37 @@ canvas{
     display: block;
 }
 
-#stockInfo span{
+#infoPrice{
+    font-size: 2em;
     font-weight: bold;
-    font-size: 1.3em;
     display: block;
-    margin-bottom: 0.25em;
-    background-color: #BBB;
-    padding: 0.1em 0.2em;
+    margin-bottom: 0.3em;
 }
 
-#infoPrice, #infoChange, #infoCompany{
+#infoChange, #infoCompany{
     font-size: 1.1em;
     display: block;
+    margin: 0 2em;
 }
 
-#stockInfo div{
-    margin: auto;
-    min-width: 10%;
+#priceContainer span{
+    display: inline;
 }
 
 #timespanSelect{
     display: flex;
-    width: 90%;
-    margin: 0 5%;
+    width: 100%;
+    margin-bottom: 2%;
     text-align: center;
+
+    border-top: 1px solid #777;
+    border-bottom: 1px solid #777;
 }
 
 #timespanSelect div{
     background-color: #EEE;
     margin: auto;
     flex: 1;
-    box-shadow: 1px 1px 1px #333; 
     cursor: pointer;
     
     padding: .25em;

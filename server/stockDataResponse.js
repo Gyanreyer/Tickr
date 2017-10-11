@@ -110,10 +110,10 @@ const getStockData = (request, response, queries) => {
 
   const url = `https://www.alphavantage.co/query?apikey=LA0ZIQVVE5KWHTGH&symbol=${queries.symbol}&function=TIME_SERIES_${timespanUrlStems[timespan]}`;
 
-  sendRequest(url, timespan, response, 5);
+  sendRequest(url, timespan, response);
 };
 
-sendRequest = (url, timespan, response, numRetries) => {
+sendRequest = (url, timespan, response) => {
   // Make an API request within an API, wooooooaaaahhhh
   Request(url,
     (err, resp, body) => {
@@ -122,7 +122,7 @@ sendRequest = (url, timespan, response, numRetries) => {
         // Get an object with a response code and an object to send in response
         const parsedData = parseStockData(JSON.parse(body), timespan);
 
-        if(parsedData.response === {} && numRetries > 0) return sendRequest(url, timespan, response, numRetries-1);
+        if(parsedData.response === {} && numRetries > 0) return sendRequest(url, timespan, response);
 
         return sendJsonResponse(response, parsedData.code, parsedData.response);
       }
