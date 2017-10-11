@@ -16,9 +16,7 @@ var requestTypeEnum = {
 
 //Take server response and send it off to appropriate area to be handled
 var handleResponse = function handleResponse(xhr, responseType) {
-    if (responseType === requestTypeEnum.search) handleSearchResponse(JSON.parse(xhr.response));else if (responseType === requestTypeEnum.getStockData) displayStockData(JSON.parse(xhr.response).data);
-    //else if(responseType === requestTypeEnum.getStockPage)
-    //displayStockPage(xhr.response);
+    if (responseType === requestTypeEnum.search) handleSearchResponse(JSON.parse(xhr.response));else if (responseType === requestTypeEnum.getStockData) handleStockDataResponse(JSON.parse(xhr.response));
 };
 
 //Takes what method we should use, type of request from enum,
@@ -110,20 +108,18 @@ var handleSearchResponse = function handleSearchResponse(responseData) {
         nameSpan.innerHTML = stock.name;
 
         var result = document.createElement('div');
-        //result.href = `/stock?symbol=${stock.symbol}`;
 
         result.appendChild(symbolSpan);
         result.appendChild(nameSpan);
 
         result.addEventListener('click', function () {
             clearSearchResults();
-            sendRequest(requestMethodEnum.get, requestTypeEnum.getStockData, { symbol: stock.symbol, timespan: 'DAY' });
+            buildStockPage(stock);
         });
 
         searchResults.appendChild(result);
 
         resultsHeight += result.clientHeight;
-        //console.log(result.clientHeight);
     };
 
     for (var i = 0; i < responseData.stocks.length; i++) {
@@ -178,9 +174,44 @@ var handleSearchResponse = function handleSearchResponse(responseData) {
 "use strict";
 'use strict';
 
-var handleStockDataResponse = function handleStockDataResponse() {};
+var loadedData = { currentData: 'DAY' };
+var timespans = ['DAY', 'WEEK', 'MONTH', 'MONTH3', 'YEAR', 'YEAR5'];
 
-var displayStockData = function displayStockData(data) {
+var mousePos = {
+    x: 0,
+    y: 0,
+    over: false
+};
+
+var handleStockDataResponse = function handleStockDataResponse(resp) {
+    var data = resp.data;
+
+    if (!data) return; //Throw an error somehow?
+
+    for (var i = 0; i < data.length; i++) {
+        data[i].price = parseFloat(data[i].price);
+    }
+
+    loadedData.data[resp.timespan] = data;
+
+    for (var _i = 0; _i < timespans.length; _i++) {
+        if (!loadedData.data[timespans[_i]]) return;
+    }
+
+    finishLoadingPage();
+};
+
+var displayStockData = function displayStockData(data, selectButton) {
+    document.getElementById(loadedData.currentData).removeAttribute('class');
+    selectButton.className = 'selected';
+    loadedData.currentData = selectButton.id;
+
+    var priceChange = data[data.length - 1].price - data[0].price;
+    var percentChange = 100 * priceChange / data[data.length - 1].price;
+
+    document.getElementById('infoChange').textContent = (priceChange < 0 ? '-' : '+') + '$' + Math.abs(priceChange.toFixed(2)) + ' (' + percentChange.toFixed(2) + '%)';
+
+    document.getElementById("dateLabel").className = document.getElementById("priceLabel").className = document.getElementById("changeLabel").className = priceChange >= 0 ? 'green' : 'red';
 
     var canvas = document.getElementById('visualization');
     var ctx = canvas.getContext('2d');
@@ -188,17 +219,16 @@ var displayStockData = function displayStockData(data) {
     var width = canvas.width;
     var height = canvas.height;
 
-    var adjustedData = [];
+    var min = data[0].price;
+    var max = data[0].price;
 
-    var min = Number.POSITIVE_INFINITY,
-        max = Number.NEGATIVE_INFINITY;
-
-    for (var i = 0; i < data.length; i++) {
+    for (var i = 1; i < data.length; i++) {
         var p = data[i].price;
 
         if (p < min) min = p;
         if (p > max) max = p;
     }
+
     var startY = 0.95 * height;
     var yScalar = 0.9 * height / (max - min);
     var pointDistX = width / (data.length - 1);
@@ -210,7 +240,6 @@ var displayStockData = function displayStockData(data) {
     //Draw dotted line for open price
     ctx.strokeStyle = '#999';
     ctx.setLineDash([10, 10]);
-    ctx.lineCap = 'butt';
 
     ctx.beginPath();
     ctx.moveTo(0, startPrice);
@@ -218,15 +247,102 @@ var displayStockData = function displayStockData(data) {
     ctx.stroke();
 
     ctx.setLineDash([]);
-    ctx.lineCap = 'round';
     ctx.strokeStyle = data[data.length - 1].price > data[0].price ? 'green' : 'red';
 
     ctx.beginPath();
     ctx.moveTo(0, startPrice);
 
-    for (var _i = 1; _i < data.length; _i++) {
-        ctx.lineTo(_i * pointDistX, startY - (data[_i].price - min) * yScalar);
+    for (var _i2 = 1; _i2 < data.length; _i2++) {
+        ctx.lineTo(_i2 * pointDistX, startY - (data[_i2].price - min) * yScalar);
     }
 
     ctx.stroke();
 };
+
+var buildStockPage = function buildStockPage(stock) {
+    loadedData.symbol = stock.symbol;
+    loadedData.name = stock.name;
+    loadedData.data = {};
+
+    for (var i = 0; i < timespans.length; i++) {
+        sendRequest(requestMethodEnum.get, requestTypeEnum.getStockData, { symbol: stock.symbol, timespan: timespans[i] });
+    }
+};
+
+var finishLoadingPage = function finishLoadingPage() {
+    document.getElementById("infoSymbol").textContent = loadedData.symbol;
+    document.getElementById("infoName").textContent = loadedData.name;
+
+    document.getElementById("infoPrice").textContent = '$' + loadedData.data.DAY[loadedData.data.DAY.length - 1].price;
+
+    displayStockData(loadedData.data.DAY, document.getElementById('DAY'));
+};
+
+var drawOverlay = function drawOverlay() {
+    var data = loadedData.data[loadedData.currentData];
+
+    if (!data) return;
+
+    var overlay = document.getElementById('overlay');
+
+    var width = overlay.width;
+    var xSegmentWidth = width / (data.length - 1);
+
+    var index = Math.round(mousePos.x / xSegmentWidth);
+    var dataPt = data[index];
+
+    var ctx = overlay.getContext('2d');
+
+    ctx.strokeStyle = '#999';
+
+    ctx.clearRect(0, 0, overlay.width, overlay.height);
+
+    ctx.beginPath();
+    ctx.moveTo(index * xSegmentWidth, 0);
+    ctx.lineTo(index * xSegmentWidth, overlay.height);
+    ctx.stroke();
+
+    document.getElementById('infoDate').textContent = dataPt.timestamp;
+    document.getElementById('infoPrice').textContent = '$' + dataPt.price;
+
+    var priceChange = dataPt.price - data[0].price;
+    var percentChange = priceChange / data[0].price;
+
+    document.getElementById("dateLabel").className = document.getElementById("priceLabel").className = document.getElementById("changeLabel").className = priceChange >= 0 ? 'green' : 'red';
+
+    if (priceChange > 0) {}
+
+    document.getElementById('infoChange').textContent = (priceChange < 0 ? '-' : '+') + '$' + Math.abs(priceChange.toFixed(2)) + ' (' + percentChange.toFixed(2) + '%)';
+};
+
+//IIFE to init stock page stuff
+(function () {
+    document.getElementById("visContainer").style.height = document.getElementById('visualization').clientHeight + 'px';
+
+    var timespanSelButtons = document.getElementById('timespanSelect').childNodes;
+
+    for (var i = 0; i < timespanSelButtons.length; i++) {
+        timespanSelButtons[i].addEventListener('click', function () {
+            if (this.id === loadedData.currentData) return;
+
+            var data = loadedData.data[this.id];
+
+            if (data) displayStockData(data, this);
+        });
+    }
+
+    var overlay = document.getElementById('overlay');
+    overlay.addEventListener('mousemove', function (e) {
+        var boundingRect = overlay.getBoundingClientRect();
+
+        mousePos.x = (e.clientX - boundingRect.left) * overlay.width / boundingRect.width;
+        mousePos.y = (e.clientY - boundingRect.top) * overlay.height / boundingRect.height;
+        mousePos.over = true;
+        drawOverlay();
+    });
+    overlay.addEventListener('mouseleave', function () {
+        mousePos.over = false;
+
+        this.getContext('2d').clearRect(0, 0, this.width, this.height);
+    });
+})();

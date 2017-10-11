@@ -55,20 +55,18 @@ const handleSearchResponse = (responseData)=>{
         nameSpan.innerHTML = stock.name;
 
         const result = document.createElement('div');
-        //result.href = `/stock?symbol=${stock.symbol}`;
 
         result.appendChild(symbolSpan);
         result.appendChild(nameSpan);
 
         result.addEventListener('click',()=>{
             clearSearchResults();
-            sendRequest(requestMethodEnum.get,requestTypeEnum.getStockData,{symbol:stock.symbol,timespan:'DAY'});
+            buildStockPage(stock);
         });
 
         searchResults.appendChild(result);
 
         resultsHeight += result.clientHeight;
-        //console.log(result.clientHeight);
     }
 
     searchResults.style.height = `${resultsHeight}px`;

@@ -15,8 +15,36 @@
     </nav>
 
     <div id="main">
-        <canvas id="visualization" width="1920" height="720"></canvas>
-        <div id="stockInfo"></div>
+        <div id="visContainer">
+            <canvas id="overlay" width="1920" height="720"></canvas>
+            <canvas id="visualization" width="1920" height="720"></canvas>
+        </div>
+        <div id="timespanSelect">
+            <div id="DAY">Day</div>
+            <div id="WEEK">Week</div>
+            <div id="MONTH">Month</div>
+            <div id="MONTH3">3 Months</div>
+            <div id="YEAR">Year</div>
+            <div id="YEAR5">5 Years</div>
+        </div>
+        <div id="stockInfo">
+            <div>
+                <div id="infoSymbol">-</div>
+                <div id="infoName"></div>
+            </div>
+            <div>
+                <span id="dateLabel">Date</span>
+                <div id="infoDate">-</div>
+            </div>
+            <div>
+                <span id="priceLabel">Price</span>
+                <div id="infoPrice">-</div>
+            </div>
+            <div>
+                <span id="changeLabel">Change</span>
+                <div id="infoChange">-</div>
+            </div>
+        </div>
     </div>
 
     <script src = "/bundle.js"></script>

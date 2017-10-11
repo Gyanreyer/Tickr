@@ -17,9 +17,7 @@ const handleResponse = (xhr, responseType) => {
     if(responseType === requestTypeEnum.search)
         handleSearchResponse(JSON.parse(xhr.response));
     else if(responseType === requestTypeEnum.getStockData)
-        displayStockData(JSON.parse(xhr.response).data);
-    //else if(responseType === requestTypeEnum.getStockPage)
-        //displayStockPage(xhr.response);
+        handleStockDataResponse(JSON.parse(xhr.response));
 };
 
 //Takes what method we should use, type of request from enum,
