@@ -9,7 +9,7 @@ const sendJsonResponse = (response, code, data) => {
 
 const parseStockData = (receivedJSON, timespan) => {
   const receivedKeys = Object.keys(receivedJSON);
-  
+
   // If the parsed response has an error message, send that
   // as a response w/ 400 error for bad request
   if (receivedKeys.length < 2) {
@@ -59,7 +59,7 @@ const parseStockData = (receivedJSON, timespan) => {
 
   // Loop through data using keys and store info as an object with timestamp and corresponding price
   // Go in reverse order so data will be ordered from oldest->newest
-  for (let i = filteredKeys.length-1; i >= 0; i--) {
+  for (let i = filteredKeys.length - 1; i >= 0; i--) {
     data.push({
       timestamp: dataKeys[i],
       price: parseFloat(stockData[filteredKeys[i]]['4. close']).toFixed(2),
@@ -84,6 +84,22 @@ const timespanUrlStems = {
   MONTH3: 'DAILY',
   YEAR: 'WEEKLY',
   YEAR5: 'MONTHLY',
+};
+
+const sendRequest = (url, timespan, response) => {
+  // Make an API request within an API, wooooooaaaahhhh
+  Request(url,
+    (err, resp, body) => {
+      // If response was 200 then proceed to parse data
+      if (resp.statusCode === 200) {
+        // Get an object with a response code and an object to send in response
+        const parsedData = parseStockData(JSON.parse(body), timespan);
+
+        return sendJsonResponse(response, parsedData.code, parsedData.response);
+      }
+      // If a different code was received then write an error response
+      return sendJsonResponse(response, resp.statusCode, { error: err });
+    });
 };
 
 const getStockData = (request, response, queries) => {
@@ -112,22 +128,6 @@ const getStockData = (request, response, queries) => {
 
   sendRequest(url, timespan, response);
 };
-
-sendRequest = (url, timespan, response) => {
-  // Make an API request within an API, wooooooaaaahhhh
-  Request(url,
-    (err, resp, body) => {
-      // If response was 200 then proceed to parse data
-      if (resp.statusCode === 200) {
-        // Get an object with a response code and an object to send in response
-        const parsedData = parseStockData(JSON.parse(body), timespan);
-
-        return sendJsonResponse(response, parsedData.code, parsedData.response);
-      }
-      // If a different code was received then write an error response
-      return sendJsonResponse(response, resp.statusCode, { error: err });
-    });
-}
 
 module.exports = {
   getStockData,
