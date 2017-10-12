@@ -122,8 +122,6 @@ sendRequest = (url, timespan, response) => {
         // Get an object with a response code and an object to send in response
         const parsedData = parseStockData(JSON.parse(body), timespan);
 
-        if(parsedData.response === {} && numRetries > 0) return sendRequest(url, timespan, response);
-
         return sendJsonResponse(response, parsedData.code, parsedData.response);
       }
       // If a different code was received then write an error response

@@ -158,8 +158,11 @@ const buildStockPage = (stock) =>{
         timespanSelButtons[i].addEventListener('click',function(){
             if(this.className === 'selected' || loadedData.loading) return;
             
-            if(loadedData.currentTimespan)
-                document.querySelector('.selected').removeAttribute('class');
+            const selectedButtons =  document.querySelectorAll('.selected');
+
+            for(let i = 0; i < selectedButtons.length; i++){
+               selectedButtons[i].removeAttribute('class');
+            }
 
             this.className = 'selected';
             loadedData.currentTimespan = this.id;
