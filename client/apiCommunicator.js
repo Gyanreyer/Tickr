@@ -8,15 +8,14 @@ const requestMethodEnum = {
 //Enum for type of request being made to API
 const requestTypeEnum = {
     search: 0,
-    getStockPage: 1,
-    getStockData: 2
+    getStockChart: 1
 };
 
 //Take server response and send it off to appropriate area to be handled
 const handleResponse = (xhr, responseType) => {
     if(responseType === requestTypeEnum.search)
         handleSearchResponse(JSON.parse(xhr.response));
-    else if(responseType === requestTypeEnum.getStockData)
+    else if(responseType === requestTypeEnum.getStockChart)
         handleStockDataResponse(JSON.parse(xhr.response));
 };
 
@@ -30,14 +29,9 @@ const sendRequest = (method,requestType,parameters) => {
         xhr.open(method,`/search?${parameters.search}`,true);
         xhr.setRequestHeader('Accept','application/json');  
     }
-    //If requesting data on a specific stock for a time period
-    else if(requestType === requestTypeEnum.getStockData && parameters.symbol && parameters.timespan){
-        xhr.open(method,`/stockData?symbol=${parameters.symbol}&timespan=${parameters.timespan}`,true);
-        xhr.setRequestHeader('Accept','application/json');
-    }
-    //If requesting a page for a stock
-    else if(requestType === requestTypeEnum.getStockPage && parameters.symbol){
-        xhr.open(method,`/stock?symbol=${parameters.symbol}`,true);
+    //If requesting a chart for a specific time period
+    else if(requestType === requestTypeEnum.getStockChart && parameters.symbol && parameters.timespan){
+        xhr.open(method,`/stockChart?symbol=${parameters.symbol}&timespan=${parameters.timespan}`,true);
         xhr.setRequestHeader('Accept','text/html');
     }
     //If request type doesn't match these then something messed up, just return early

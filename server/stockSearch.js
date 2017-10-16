@@ -2,12 +2,12 @@ const csv = require('fast-csv');
 const fs = require('fs');
 const Fuse = require('fuse.js');
 
+const stockList = [];// List of all parsed stocks from csv file
+
 let fuseSearch;// Object for searching all 
 
 // Run an IIFE to initialize everything
 (() => {
-  const stockList = [];// List of all parsed stocks from csv file
-
   // Read stream for reading stockList.csv
   const fileStream = fs.createReadStream(`${__dirname}/../hosted/stockList.csv`);
 
@@ -57,7 +57,17 @@ const getSearchResultsMeta = (request, response, searchString) => {
   return sendJsonResponse(response, matchFound ? 200 : 204);
 };
 
+//Search stock list by symbol and return corresponding stock's
+//symbol + name object if it exists
+const getStock = (symbol) => {
+  symbol = symbol.toUpperCase();
+  return stockList.find((s)=>{
+    return s.symbol === symbol;
+  });
+};
+
 module.exports = {
   getSearchResults,
   getSearchResultsMeta,
+  getStock,
 };

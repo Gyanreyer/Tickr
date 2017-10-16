@@ -74,12 +74,18 @@ nav{
     vertical-align: middle;       
 }
 
+#main{
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-height: 100vh;
+}
+
 #visContainer{
     width: 100%;
     margin: 0;
     background-color: white;
     position: relative;
-    display: block;
     z-index: 3;
 }
 
@@ -87,15 +93,9 @@ canvas{
     width: 100%;
 }
 
-#overlay{
-    z-index: 2;
-    position: absolute;
-    top: 0;
-    left: 0;
-}
-
 #visualization{
-    background-color: white;
+    width: 100%;
+    flex-grow: 1;
 }
 
 #stockInfo{
@@ -117,21 +117,29 @@ canvas{
 #infoSymbol{
     text-align: center;
     font-weight: bold;
-    font-size: 2.5em;
+    font-size: 3em;
     display: block;
 }
 
+#infoName{
+    font-size: 1.2em;
+}
+
 #infoPrice{
-    font-size: 2em;
+    font-size: 2.3em;
     font-weight: bold;
     display: block;
     margin-bottom: 0.3em;
 }
 
-#infoChange, #infoCompany{
-    font-size: 1.1em;
+#infoChange, #infoDate{
+    font-size: 1.2em;
     display: block;
-    margin: 0 2em;
+    margin: 0 1em;
+}
+
+#stockInfo,#priceContainer{
+    transition: opacity 0.5s ease-in-out;
 }
 
 #priceContainer span{
@@ -139,26 +147,29 @@ canvas{
 }
 
 #timespanSelect{
+    position: absolute;
+    bottom: 0;
+
     display: flex;
+    flex-direction: row;
     width: 100%;
-    margin-bottom: 2%;
     text-align: center;
 
     border-top: 1px solid #777;
-    border-bottom: 1px solid #777;
 }
 
 #timespanSelect div{
     background-color: #EEE;
-    margin: auto;
-    flex: 1;
     cursor: pointer;
     
-    padding: .25em;
+    flex: 1;
+    padding: .5em 0;
 
     transition: background-color 0.25s;
     -webkit-transition: background-color 0.25s;
     z-index: 1;
+
+    align-self: center;
 }
 
 #timespanSelect div:hover{

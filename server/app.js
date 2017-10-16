@@ -2,8 +2,8 @@ const http = require('http');
 const url = require('url');
 
 const clientHandler = require('./clientResponse.js');
-const searchHandler = require('./stockSearchResponse.js');
-const stockDataHandler = require('./stockDataResponse.js');
+const searchHandler = require('./stockSearch.js');
+const stockDataHandler = require('./stockResponse.js');
 
 const port = process.env.PORT || process.env.NODE_PORT || 3000;
 
@@ -24,7 +24,8 @@ const handleGet = (request, response, parsedUrl) => {
     case '/stockData':
       stockDataHandler.getStockData(request, response, parsedUrl.query);
       break;
-    case '/stock':
+    case '/stockChart':
+      stockDataHandler.getStockChart(request, response, parsedUrl.query);
       break;
     default:
       // TODO: implement 404

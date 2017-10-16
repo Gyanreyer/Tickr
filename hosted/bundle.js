@@ -10,13 +10,12 @@ var requestMethodEnum = {
 //Enum for type of request being made to API
 var requestTypeEnum = {
     search: 0,
-    getStockPage: 1,
-    getStockData: 2
+    getStockChart: 1
 };
 
 //Take server response and send it off to appropriate area to be handled
 var handleResponse = function handleResponse(xhr, responseType) {
-    if (responseType === requestTypeEnum.search) handleSearchResponse(JSON.parse(xhr.response));else if (responseType === requestTypeEnum.getStockData) handleStockDataResponse(JSON.parse(xhr.response));
+    if (responseType === requestTypeEnum.search) handleSearchResponse(JSON.parse(xhr.response));else if (responseType === requestTypeEnum.getStockChart) handleStockDataResponse(JSON.parse(xhr.response));
 };
 
 //Takes what method we should use, type of request from enum,
@@ -29,18 +28,13 @@ var sendRequest = function sendRequest(method, requestType, parameters) {
         xhr.open(method, '/search?' + parameters.search, true);
         xhr.setRequestHeader('Accept', 'application/json');
     }
-    //If requesting data on a specific stock for a time period
-    else if (requestType === requestTypeEnum.getStockData && parameters.symbol && parameters.timespan) {
-            xhr.open(method, '/stockData?symbol=' + parameters.symbol + '&timespan=' + parameters.timespan, true);
-            xhr.setRequestHeader('Accept', 'application/json');
+    //If requesting a chart for a specific time period
+    else if (requestType === requestTypeEnum.getStockChart && parameters.symbol && parameters.timespan) {
+            xhr.open(method, '/stockChart?symbol=' + parameters.symbol + '&timespan=' + parameters.timespan, true);
+            xhr.setRequestHeader('Accept', 'text/html');
         }
-        //If requesting a page for a stock
-        else if (requestType === requestTypeEnum.getStockPage && parameters.symbol) {
-                xhr.open(method, '/stock?symbol=' + parameters.symbol, true);
-                xhr.setRequestHeader('Accept', 'text/html');
-            }
-            //If request type doesn't match these then something messed up, just return early
-            else return;
+        //If request type doesn't match these then something messed up, just return early
+        else return;
 
     //Call handleResponse when response loaded, give it the response and info on how to handle it
     xhr.onload = function () {
@@ -149,120 +143,46 @@ var handleSearchResponse = function handleSearchResponse(responseData) {
 var RED = '#B55';
 var GREEN = '#5B5';
 
-var loadedData = {};
+var loadedCharts = {};
 var timespans = ['DAY', 'WEEK', 'MONTH', 'MONTH3', 'YEAR', 'YEAR5'];
 
-var mousePos = {
-    x: 0,
-    y: 0,
-    over: false
-};
-
 var handleStockDataResponse = function handleStockDataResponse(resp) {
-    loadedData.loading = false;
+    loadedCharts.loading = false;
 
-    var data = resp.data;
-
-    if (!data) {
-        //Display an error message on screen
+    if (resp.code !== 200) {
+        //Display the error message on screen
+        return;
     }
 
-    for (var i = 0; i < data.length; i++) {
-        data[i].price = parseFloat(data[i].price);
-    }
+    loadedCharts[resp.timespan] = resp.html;
 
-    loadedData[resp.timespan] = data;
-
-    displayStockData(data, document.getElementById(resp.timespan));
+    displayStockData(resp.html);
 };
 
-var displayStockData = function displayStockData(data, selectButton) {
-    var endPrice = data[data.length - 1].price;
-    var startPrice = data[0].price;
+var displayStockData = function displayStockData(svgElement) {
+    var vis = document.getElementById('visualization');
+    vis.innerHTML = svgElement;
+    showHoverInfo(vis.querySelector('#end'));
 
-    var positiveChange = (endPrice - startPrice).toFixed(2) >= 0;
+    vis.addEventListener('mousemove', function (e) {
+        showHoverLine(100 * e.clientX / vis.getBoundingClientRect().width);
+    });
+    vis.addEventListener('mouseleave', function () {
+        document.getElementById('hoverLine').setAttribute('visibility', 'hidden');
+        showHoverInfo(vis.querySelector('#end'));
+    });
 
-    var canvas = document.getElementById('visualization');
-    var ctx = canvas.getContext('2d');
+    var hoverZones = vis.querySelectorAll('.hoverZone');
 
-    var width = canvas.width;
-    var height = canvas.height;
+    var _loop = function _loop(i) {
+        hoverZones[i].addEventListener('mousemove', function () {
+            showHoverInfo(hoverZones[i]);
+        });
+    };
 
-    var min = startPrice;
-    var max = startPrice;
-
-    for (var i = 1; i < data.length; i++) {
-        var p = data[i].price;
-
-        if (p < min) min = p;
-        if (p > max) max = p;
+    for (var i = 0; i < hoverZones.length; i++) {
+        _loop(i);
     }
-
-    var baseY = 0.95 * height;
-    var yScalar = 0.9 * height / (max - min);
-    var pointDistX = width / (data.length - 1);
-
-    var startYPos = baseY - (data[0].price - min) * yScalar;
-
-    ctx.clearRect(0, 0, width, height);
-
-    ctx.lineWidth = 2;
-
-    //Draw dotted line for open price
-    ctx.strokeStyle = '#999';
-    ctx.setLineDash([10, 10]);
-
-    ctx.beginPath();
-    ctx.moveTo(0, startYPos);
-    ctx.lineTo(canvas.width, startYPos);
-    ctx.stroke();
-
-    ctx.setLineDash([]);
-    ctx.strokeStyle = positiveChange ? GREEN : RED;
-
-    ctx.beginPath();
-    ctx.moveTo(0, startYPos);
-
-    for (var _i = 1; _i < data.length; _i++) {
-        ctx.lineTo(_i * pointDistX, baseY - (data[_i].price - min) * yScalar);
-    }
-
-    ctx.stroke();
-
-    updateStockInfo(data[data.length - 1], data[0]);
-};
-
-var drawOverlay = function drawOverlay() {
-    if (loadedData.loading || !loadedData.hasOwnProperty(loadedData.currentTimespan)) return;
-
-    var data = loadedData[loadedData.currentTimespan];
-
-    if (!data) return;
-
-    var overlay = document.getElementById('overlay');
-
-    var width = overlay.width;
-    var xSegmentWidth = width / (data.length - 1);
-
-    var index = Math.round(mousePos.x / xSegmentWidth);
-    var dataPt = data[index];
-
-    var ctx = overlay.getContext('2d');
-
-    ctx.strokeStyle = '#555';
-    ctx.lineWidth = 3;
-
-    ctx.clearRect(0, 0, overlay.width, overlay.height);
-
-    //Clamp so line is still visible on edges
-    var xCoord = Math.min(Math.max(index * xSegmentWidth, 1), width - 1);
-
-    ctx.beginPath();
-    ctx.moveTo(xCoord, 0);
-    ctx.lineTo(xCoord, overlay.height);
-    ctx.stroke();
-
-    updateStockInfo(dataPt, data[0]);
 };
 
 var updateStockInfo = function updateStockInfo(dataPt, startPt) {
@@ -283,18 +203,105 @@ var updateStockInfo = function updateStockInfo(dataPt, startPt) {
 };
 
 var buildStockPage = function buildStockPage(stock) {
-    loadedData = {
-        currentTimespan: timespans[0], //Start as DAY
-        loading: true
-    };
+    loadedCharts = {};
 
-    document.getElementById("infoSymbol").textContent = loadedData.symbol = stock.symbol;
-    document.getElementById("infoName").textContent = loadedData.name = stock.name;
-    document.getElementById(loadedData.currentTimespan).className = 'selected';
+    document.getElementById("infoSymbol").textContent = loadedCharts.symbol = stock.symbol;
+    document.getElementById("infoName").textContent = stock.name;
 
-    sendRequest(requestMethodEnum.get, requestTypeEnum.getStockData, {
-        symbol: stock.symbol,
-        timespan: loadedData.currentTimespan //Get DAY data to display first
+    document.getElementById('priceContainer').style.opacity = 0;
+
+    loadData('DAY'); //Get DAY data to display first
+};
+
+var loadData = function loadData(timespan) {
+
+    if (timespan === loadedCharts.currentTimespan || loadedCharts.loading) return;
+
+    var selectedButtons = document.querySelectorAll('.selected');
+
+    for (var i = 0; i < selectedButtons.length; i++) {
+        selectedButtons[i].removeAttribute('class');
+    }
+
+    document.getElementById(timespan).className = 'selected';
+
+    loadedCharts.currentTimespan = timespan;
+
+    var data = loadedCharts[timespan];
+
+    if (data) displayStockData(data);else {
+        loadedCharts.loading = true;
+
+        initLoadingAnim();
+
+        sendRequest(requestMethodEnum.get, requestTypeEnum.getStockChart, {
+            symbol: loadedCharts.symbol,
+            timespan: timespan
+        });
+    }
+};
+
+var showHoverLine = function showHoverLine(xPos) {
+    if (loadedCharts.loading) return;
+
+    var hoverLine = document.getElementById('hoverLine');
+    hoverLine.setAttribute('visibility', 'visible');
+    hoverLine.setAttribute('x1', xPos);
+    hoverLine.setAttribute('x2', xPos);
+};
+
+var showHoverInfo = function showHoverInfo(hoverElement) {
+    if (loadedCharts.loading) return;
+
+    //Get price of first hover zone
+    var startPrice = parseFloat(document.getElementById('start').getAttribute('data-stockprice'));
+
+    var priceString = hoverElement.getAttribute('data-stockprice');
+
+    var priceFormatter = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2
+    });
+
+    var change = parseFloat(priceString) - startPrice;
+    var percentChange = 100 * change / startPrice;
+
+    var positiveChange = change >= 0;
+
+    var priceContainer = document.getElementById('priceContainer');
+
+    priceContainer.querySelector('#infoPrice').textContent = '' + priceFormatter.format(priceString);
+
+    var infoChange = priceContainer.querySelector('#infoChange');
+    var infoDate = priceContainer.querySelector('#infoDate');
+
+    infoChange.style.color = infoDate.style.color = positiveChange ? '#5B5' : '#B55';
+    infoChange.textContent = '' + (positiveChange ? '+' : '-') + priceFormatter.format(Math.abs(change)) + ' (' + percentChange.toFixed(2) + '%)';
+
+    infoDate.textContent = hoverElement.getAttribute('data-timestamp');
+
+    priceContainer.style.opacity = 1;
+};
+
+var initLoadingAnim = function initLoadingAnim() {
+    document.getElementById('stockInfo').style.opacity = 0.25;
+
+    document.getElementById('visualization').innerHTML = '<path id="loadingPath" d="M 47,50 L 49,45 50,47.5 53,40" fill="none" stroke="#5B5"\n            vector-effect="non-scaling-stroke" stroke-width="5" stroke-dasharray="100"/>';
+
+    loadingAnim(document.getElementById('loadingPath'), 0);
+};
+
+var loadingAnim = function loadingAnim(loadingElement, offset) {
+    if (!loadedCharts.loading) {
+        document.getElementById('stockInfo').style.opacity = 1;
+        return;
+    }
+
+    loadingElement.setAttribute('stroke-dashoffset', offset);
+
+    requestAnimationFrame(function () {
+        loadingAnim(loadingElement, offset - 1.5);
     });
 };
 
@@ -302,43 +309,13 @@ var buildStockPage = function buildStockPage(stock) {
 (function () {
     var timespanSelButtons = document.getElementById('timespanSelect').childNodes;
 
-    for (var i = 0; i < timespanSelButtons.length; i++) {
+    var _loop2 = function _loop2(i) {
         timespanSelButtons[i].addEventListener('click', function () {
-            if (this.className === 'selected' || loadedData.loading) return;
-
-            var selectedButtons = document.querySelectorAll('.selected');
-
-            for (var _i2 = 0; _i2 < selectedButtons.length; _i2++) {
-                selectedButtons[_i2].removeAttribute('class');
-            }
-
-            this.className = 'selected';
-            loadedData.currentTimespan = this.id;
-
-            var data = loadedData[this.id];
-
-            if (data) displayStockData(data, this);else sendRequest(requestMethodEnum.get, requestTypeEnum.getStockData, {
-                symbol: loadedData.symbol,
-                timespan: this.id //Get DAY data to display first
-            });
+            loadData(timespanSelButtons[i].id);
         });
+    };
+
+    for (var i = 0; i < timespanSelButtons.length; i++) {
+        _loop2(i);
     }
-
-    var overlay = document.getElementById('overlay');
-    overlay.addEventListener('mousemove', function (e) {
-        var boundingRect = overlay.getBoundingClientRect();
-
-        mousePos.x = (e.clientX - boundingRect.left) * overlay.width / boundingRect.width;
-        mousePos.y = (e.clientY - boundingRect.top) * overlay.height / boundingRect.height;
-        drawOverlay();
-    });
-    overlay.addEventListener('mouseleave', function () {
-        var data = loadedData[loadedData.currentTimespan];
-
-        if (!data) return;
-
-        this.getContext('2d').clearRect(0, 0, this.width, this.height);
-
-        updateStockInfo(data[data.length - 1], data[0]);
-    });
 })();
