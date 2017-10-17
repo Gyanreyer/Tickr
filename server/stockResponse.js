@@ -13,17 +13,11 @@ const timespanUrlStems = {
 };
 
 // Send JSON response, include body if data is passed
-const sendJsonResponse = (response, code, data, symbol) => {
+const sendJsonResponse = (response, code, data) => {
   response.writeHead(code, { 'Content-Type': 'application/json' });
   if (data) response.write(JSON.stringify(data));
   response.end();
 };
-
-const sendHtmlResponse = (response, code, data) => {
-  response.writeHead(code, {'Content-Type':'text/html'});
-  response.write(data);
-  response.end();
-}
 
 const parseStockData = (receivedJSON, info) => {
   const receivedKeys = Object.keys(receivedJSON);
@@ -98,13 +92,13 @@ const validateQueries = (queries) => {
   if (!queries.timespan || !queries.symbol) {
     return {
       error: true,
-      message:'Both timespan and symbol parameters are required'
+      message: 'Both timespan and symbol parameters are required',
     };
   }
 
   const stock = getStock(queries.symbol);
 
-  if(!stock){
+  if (!stock) {
     return {
       error: true,
       message: `The symbol '${queries.symbol}' could not be found in the database`,
@@ -123,29 +117,29 @@ const validateQueries = (queries) => {
     };
   }
 
-  //Return an object with info derived from queries if they're valid
+  // Return an object with info derived from queries if they're valid
   return {
     stock,
     timespan,
-    urlStem
-  }
-}
+    urlStem,
+  };
+};
 
-//Get data as json object
+// Get data as json object
 const getStockData = (request, response, queries) => {
-  //Validate queries and return object with info derived from them if valid
+  // Validate queries and return object with info derived from them if valid
   const validatedInfo = validateQueries(queries);
 
-  if (validatedInfo.error){
-    //Send bad request error, queries were invalid
+  if (validatedInfo.error) {
+    // Send bad request error, queries were invalid
     sendJsonResponse(response, 400, {
-      id:'badRequest',
-      message:validatedInfo.message
+      id: 'badRequest',
+      message: validatedInfo.message,
     });
     return;
   }
 
-  //Make request to alphavantage API based on queries
+  // Make request to alphavantage API based on queries
   Request(`https://www.alphavantage.co/query?apikey=LA0ZIQVVE5KWHTGH&symbol=${validatedInfo.stock.symbol}&function=TIME_SERIES_${validatedInfo.urlStem}`,
     (err, resp, body) => {
       // If response was 200 then proceed to parse data
@@ -153,35 +147,34 @@ const getStockData = (request, response, queries) => {
         // Get an object with a response code and an object to send in response
         const parsedData = parseStockData(JSON.parse(body), validatedInfo);
 
-        if(parsedData.error){
-          sendJsonResponse(response, 404, parsedData.data);//failed to get desired data from API request
-        }
-        else{
+        if (parsedData.error) {
+          // failed to get desired data from API request, send 404
+          sendJsonResponse(response, 404, parsedData.data);
+        } else {
           sendJsonResponse(response, 200, parsedData);
         }
-      }
-      else{
+      } else {
         // If a different code was received then write an error response
         sendJsonResponse(response, resp ? resp.statusCode : 404, { err });
       }
     });
 };
 
-//Get data as an svg element in text/html
+// Get data as an svg element in text/html
 const getStockChart = (request, response, queries) => {
-  //Validate queries and return object with info derived from them if valid
+  // Validate queries and return object with info derived from them if valid
   const validatedInfo = validateQueries(queries);
 
-  if (validatedInfo.error){
-    //Send bad request error, queries were invalid
+  if (validatedInfo.error) {
+    // Send bad request error, queries were invalid
     sendJsonResponse(response, 400, {
-      id:'badRequest',
-      message:validatedInfo.message
+      id: 'badRequest',
+      message: validatedInfo.message,
     });
     return;
   }
 
-  //Make request to alphavantage API based on queries
+  // Make request to alphavantage API based on queries
   Request(`https://www.alphavantage.co/query?apikey=LA0ZIQVVE5KWHTGH&symbol=${validatedInfo.stock.symbol}&function=TIME_SERIES_${validatedInfo.urlStem}`,
     (err, resp, body) => {
       // If response was 200 then proceed to parse data
@@ -190,8 +183,7 @@ const getStockChart = (request, response, queries) => {
         const responseJson = makeChart(parseStockData(JSON.parse(body), validatedInfo));
 
         sendJsonResponse(response, responseJson.code, responseJson);
-      }
-      else{
+      } else {
         // If a different code was received then write an error response
         sendJsonResponse(response, resp ? resp.statusCode : 404, { err });
       }

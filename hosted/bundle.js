@@ -321,6 +321,8 @@ var loadingAnim = function loadingAnim(loadingElement, offset) {
         return;
     }
 
+    if (offset < 0) offset += 400;
+
     loadingElement.setAttribute('stroke-dashoffset', offset);
 
     requestAnimationFrame(function () {

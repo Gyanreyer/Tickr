@@ -19,13 +19,13 @@ const handleGet = (request, response, parsedUrl) => {
       clientHandler.getJS(request, response);
       break;
     case '/searchIcon.png':
-      clientHandler.getSearchIcon(request,response);
+      clientHandler.getSearchIcon(request, response);
       break;
     case '/logo.png':
-      clientHandler.getLogo(request,response);
+      clientHandler.getLogo(request, response);
       break;
     case '/refreshIcon.png':
-      clientHandler.getRefreshIcon(request,response);
+      clientHandler.getRefreshIcon(request, response);
       break;
     case '/search':
       searchHandler.getSearchResults(request, response, parsedUrl.search.slice(1));

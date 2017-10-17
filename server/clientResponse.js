@@ -26,22 +26,22 @@ const getJS = (request, response) => {
 };
 
 const getSearchIcon = (request, response) => {
-  response.writeHead(200, {'Content-Type': 'image/png'});
+  response.writeHead(200, { 'Content-Type': 'image/png' });
   response.write(search);
   response.end();
-}
+};
 
-const getLogo = (request, response) =>{
-  response.writeHead(200, {'Content-Type':'image/png'});
+const getLogo = (request, response) => {
+  response.writeHead(200, { 'Content-Type': 'image/png' });
   response.write(logo);
   response.end();
-}
+};
 
-const getRefreshIcon = (request,response) => {
-  response.writeHead(200, {'Content-Type':'image/png'});
+const getRefreshIcon = (request, response) => {
+  response.writeHead(200, { 'Content-Type': 'image/png' });
   response.write(refresh);
   response.end();
-}
+};
 
 module.exports = {
   getIndex,

@@ -57,13 +57,11 @@ const getSearchResultsMeta = (request, response, searchString) => {
   return sendJsonResponse(response, matchFound ? 200 : 204);
 };
 
-//Search stock list by symbol and return corresponding stock's
-//symbol + name object if it exists
+// Search stock list by symbol and return corresponding stock's
+// symbol + name object if it exists
 const getStock = (symbol) => {
-  symbol = symbol.toUpperCase();
-  return stockList.find((s)=>{
-    return s.symbol === symbol;
-  });
+  const sym = symbol.toUpperCase();
+  return stockList.find(s => s.symbol === sym);
 };
 
 module.exports = {
