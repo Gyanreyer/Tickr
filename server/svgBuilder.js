@@ -23,32 +23,27 @@ module.exports.makeChart = (dataObject) => {
       if(data[i].price < min) min = data[i].price;
   }
 
-  const range = 80 / (max - min);//Multiply prices by this to convert price to y coord from 0-100
+  const range = max > min ? 70 / (max - min) : 0;//Multiply prices by this to convert price to y coord from 0-100
+  const midPt = max-(max - min)/2;
   const xDist = 100 / (dataLength);//Dist btwn pts on x axis
 
-  const openingLineY = 90-(data[0].price - min)*range;//Y pos of opening price
+  const openingLineY = 50-(data[0].price - midPt)*range;//Y pos of opening price
 
   let pointString = `0,${openingLineY} `;//string of point coords for graph polyline
   let hoverzonesString = '';//string of rects for capturing hover events on graph
 
   //Loop through points and add them to graph
   for(let i = 0; i < dataLength; i++){
-      const price = data[i].price;
+    const price = data[i].price;
 
-      pointString += `${xDist*(i+0.5)},${90-(price - min)*range} `;
+    pointString += `${xDist*(i+0.5)},${50-(price - midPt)*range} `;
 
-    let idString = '';
-
-    if(i === 0) idString = 'id="start"';
-    else if(i === dataLength-1) idString = 'id="end"';
-
-      hoverzonesString += `<rect class="hoverZone" width="${xDist}" height="100"
-          pointer-events="fill" visibility="hidden" x="${xDist*i}" y="0"
-          data-stockprice="${price.toFixed(2)}" data-timestamp="${data[i].timestamp}"
-          ${idString}/>`;
+    hoverzonesString += `<rect class="hoverZone${i === dataLength-1 ? ' end' : ''}"
+        width="${xDist}" height="100" pointer-events="fill" visibility="hidden" x="${xDist*i}" y="0"
+        data-stockprice="${price.toFixed(2)}" data-timestamp="${data[i].timestamp}"/>`;
   }
 
-  pointString += `100,${90-(data[dataLength-1].price - min)*range}`;
+  pointString += `100,${50-(data[dataLength-1].price - midPt)*range}`;
 
   //Build a full string for svg element that we'll be sending as response
   return {

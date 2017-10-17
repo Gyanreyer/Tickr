@@ -18,6 +18,12 @@ const handleGet = (request, response, parsedUrl) => {
     case '/bundle.js':
       clientHandler.getJS(request, response);
       break;
+    case '/searchIcon.png':
+      clientHandler.getSearchIcon(request,response);
+      break;
+    case '/logo.png':
+      clientHandler.getLogo(request,response);
+      break;
     case '/search':
       searchHandler.getSearchResults(request, response, parsedUrl.search.slice(1));
       break;

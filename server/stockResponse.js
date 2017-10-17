@@ -149,7 +149,7 @@ const getStockData = (request, response, queries) => {
   Request(`https://www.alphavantage.co/query?apikey=LA0ZIQVVE5KWHTGH&symbol=${validatedInfo.stock.symbol}&function=TIME_SERIES_${validatedInfo.urlStem}`,
     (err, resp, body) => {
       // If response was 200 then proceed to parse data
-      if (resp.statusCode === 200) {
+      if (resp && resp.statusCode === 200) {
         // Get an object with a response code and an object to send in response
         const parsedData = parseStockData(JSON.parse(body), validatedInfo);
 
@@ -162,7 +162,7 @@ const getStockData = (request, response, queries) => {
       }
       else{
         // If a different code was received then write an error response
-        sendJsonResponse(response, resp.statusCode, { error: err });
+        sendJsonResponse(response, resp ? resp.statusCode : 404, { err });
       }
     });
 };
@@ -185,7 +185,7 @@ const getStockChart = (request, response, queries) => {
   Request(`https://www.alphavantage.co/query?apikey=LA0ZIQVVE5KWHTGH&symbol=${validatedInfo.stock.symbol}&function=TIME_SERIES_${validatedInfo.urlStem}`,
     (err, resp, body) => {
       // If response was 200 then proceed to parse data
-      if (resp.statusCode === 200) {
+      if (resp && resp.statusCode === 200) {
         // Parse body and use it to generate a chart
         const responseJson = makeChart(parseStockData(JSON.parse(body), validatedInfo));
 
@@ -193,7 +193,7 @@ const getStockChart = (request, response, queries) => {
       }
       else{
         // If a different code was received then write an error response
-        sendJsonResponse(response, resp.statusCode, { error: err });
+        sendJsonResponse(response, resp ? resp.statusCode : 404, { err });
       }
     });
 };

@@ -9,17 +9,31 @@ nav{
     padding: 10px 0;
 }
 
+#logo{
+    height: 2em;
+    float: right;
+    margin-right: 1em;
+}
+
+#searchIcon{
+    width: 2em;
+    float: left;
+    margin: 0 1em;
+}
+
 #search{
-    margin-left: 1%;
+    display: inline;
+    position: relative;
 }
 
 #searchBar{
-    width: 710px;/*Gonna have to update via JS on browser resize*/
+    width: 500px;/*Gonna have to update via JS on browser resize*/
     margin: 0;
 
     border: 0;
-    padding: 5px;
+    padding: 0.3em;
     outline: 1px solid #666;
+    font-size: 1.1em;
 
     vertical-align: middle;
 }
@@ -30,19 +44,20 @@ nav{
 
     font-size: 1.2em;
 
-    width:720px;
+    width:510px;
     margin: 0;
 
     transition: height .2s ease-in-out;
     overflow-y: scroll;
 
     height: 0;
-    max-height: 50%;
+    max-height: 20em;
 
     position: absolute;
     box-shadow: 1px 1px 1px #444;
 
     z-index: 5;
+    right: 0;
 }
 
 #searchResults div{
@@ -148,38 +163,35 @@ canvas{
 
 #timespanSelect{
     position: absolute;
-    bottom: 0;
-
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-    text-align: center;
-
-    border-top: 1px solid #777;
+    left: 1em;
+    bottom: 0.5em;
 }
 
-#timespanSelect div{
-    background-color: #EEE;
+#timespanSelect span{
     cursor: pointer;
     
     flex: 1;
-    padding: .5em 0;
 
-    transition: background-color 0.25s;
-    -webkit-transition: background-color 0.25s;
-    z-index: 1;
+    transition: color 0.25s ease-in-out;
+    -webkit-transition: color 0.25s ease-in-out;
 
-    align-self: center;
+    z-index: 5;
+
+    float: left;
+    margin-right: 1em;
+    text-decoration: underline;
+
+    color: #555;
+
+    font-size: 1.3em;
 }
 
-#timespanSelect div:hover{
-    background-color: #DDD;
-}
-
-#timespanSelect div:not(:last-child){
-    border-right: 1px solid #777; 
+#timespanSelect span:hover{
+    color: #222;
 }
 
 #timespanSelect .selected{
-    background-color: #CCC;
+    font-weight: bold;
+    font-size: 1.4em;
+    color: #222;
 }

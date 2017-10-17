@@ -60,6 +60,7 @@ const handleSearchResponse = (responseData)=>{
         result.appendChild(nameSpan);
 
         result.addEventListener('click',()=>{
+            lastWordSearched = '';
             clearSearchResults();
             buildStockPage(stock);
         });
@@ -78,8 +79,10 @@ const handleSearchResponse = (responseData)=>{
 
     searchBar.addEventListener('keyup',()=>sendSearch(searchBar.value));
     searchBar.addEventListener('focus',()=>sendSearch(searchBar.value));
-    /*searchBar.addEventListener('blur',()=>{
+    searchBar.addEventListener('blur',(e)=>{
+        if(e.relatedTarget && e.relatedTarget.id === 'search') return;
+
         clearSearchResults();
         lastWordSearched = '';
-    });*/
+    });
 })();

@@ -107,6 +107,7 @@ var handleSearchResponse = function handleSearchResponse(responseData) {
         result.appendChild(nameSpan);
 
         result.addEventListener('click', function () {
+            lastWordSearched = '';
             clearSearchResults();
             buildStockPage(stock);
         });
@@ -133,10 +134,12 @@ var handleSearchResponse = function handleSearchResponse(responseData) {
     searchBar.addEventListener('focus', function () {
         return sendSearch(searchBar.value);
     });
-    /*searchBar.addEventListener('blur',()=>{
+    searchBar.addEventListener('blur', function (e) {
+        if (e.relatedTarget && e.relatedTarget.id === 'search') return;
+
         clearSearchResults();
         lastWordSearched = '';
-    });*/
+    });
 })();
 'use strict';
 
@@ -151,25 +154,38 @@ var handleStockDataResponse = function handleStockDataResponse(resp) {
 
     if (resp.code !== 200) {
         //Display the error message on screen
+        console.log(resp);
+        var vis = document.getElementById('visualization');
+
+        while (vis.firstChild) {
+            vis.removeChild(vis.firstChild);
+        }
+
         return;
     }
 
     loadedCharts[resp.timespan] = resp.html;
 
     displayStockData(resp.html);
+
+    document.getElementById('priceContainer').style.opacity = 1;
 };
 
 var displayStockData = function displayStockData(svgElement) {
     var vis = document.getElementById('visualization');
     vis.innerHTML = svgElement;
-    showHoverInfo(vis.querySelector('#end'));
+    showHoverInfo(vis.querySelector('.end'));
 
     vis.addEventListener('mousemove', function (e) {
+        if (loadedCharts.loading || !loadedCharts[loadedCharts.currentTimespan]) return;
+
         showHoverLine(100 * e.clientX / vis.getBoundingClientRect().width);
     });
     vis.addEventListener('mouseleave', function () {
+        if (loadedCharts.loading || !loadedCharts[loadedCharts.currentTimespan]) return;
+
         document.getElementById('hoverLine').setAttribute('visibility', 'hidden');
-        showHoverInfo(vis.querySelector('#end'));
+        showHoverInfo(vis.querySelector('.end'));
     });
 
     var hoverZones = vis.querySelectorAll('.hoverZone');
@@ -254,7 +270,7 @@ var showHoverInfo = function showHoverInfo(hoverElement) {
     if (loadedCharts.loading) return;
 
     //Get price of first hover zone
-    var startPrice = parseFloat(document.getElementById('start').getAttribute('data-stockprice'));
+    var startPrice = parseFloat(document.querySelector('.hoverZone').getAttribute('data-stockprice'));
 
     var priceString = hoverElement.getAttribute('data-stockprice');
 
@@ -280,14 +296,17 @@ var showHoverInfo = function showHoverInfo(hoverElement) {
     infoChange.textContent = '' + (positiveChange ? '+' : '-') + priceFormatter.format(Math.abs(change)) + ' (' + percentChange.toFixed(2) + '%)';
 
     infoDate.textContent = hoverElement.getAttribute('data-timestamp');
-
-    priceContainer.style.opacity = 1;
 };
 
 var initLoadingAnim = function initLoadingAnim() {
     document.getElementById('stockInfo').style.opacity = 0.25;
 
-    document.getElementById('visualization').innerHTML = '<path id="loadingPath" d="M 47,50 L 49,45 50,47.5 53,40" fill="none" stroke="#5B5"\n            vector-effect="non-scaling-stroke" stroke-width="5" stroke-dasharray="100"/>';
+    var vis = document.getElementById('visualization');
+
+    var visBoundRect = vis.getBoundingClientRect();
+    var midY = 100 * (document.body.clientHeight / 2 - visBoundRect.y) / visBoundRect.height;
+
+    vis.innerHTML = '<path id="loadingPath" d="m 47,' + midY + ' 2,-5 1,2.5 3,-7.5" fill="none" stroke="#5B5"\n            vector-effect="non-scaling-stroke" stroke-width="5" stroke-dasharray="100"/>';
 
     loadingAnim(document.getElementById('loadingPath'), 0);
 };
