@@ -24,6 +24,9 @@ const handleGet = (request, response, parsedUrl) => {
     case '/logo.png':
       clientHandler.getLogo(request,response);
       break;
+    case '/refreshIcon.png':
+      clientHandler.getRefreshIcon(request,response);
+      break;
     case '/search':
       searchHandler.getSearchResults(request, response, parsedUrl.search.slice(1));
       break;

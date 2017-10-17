@@ -299,28 +299,32 @@ var showHoverInfo = function showHoverInfo(hoverElement) {
 };
 
 var initLoadingAnim = function initLoadingAnim() {
-    document.getElementById('stockInfo').style.opacity = 0.25;
+    var stockInfo = document.getElementById('stockInfo');
+    stockInfo.style.opacity = 0.25;
+    stockInfo.style.pointerEvents = "none";
 
     var vis = document.getElementById('visualization');
 
     var visBoundRect = vis.getBoundingClientRect();
     var midY = 100 * (document.body.clientHeight / 2 - visBoundRect.y) / visBoundRect.height;
 
-    vis.innerHTML = '<path id="loadingPath" d="m 47,' + midY + ' 2,-5 1,2.5 3,-7.5" fill="none" stroke="#5B5"\n            vector-effect="non-scaling-stroke" stroke-width="5" stroke-dasharray="100"/>';
+    vis.innerHTML = '<path id="loadingPath" d="m 47.5,' + (midY + 4.5) + ' 2,-6 1,3 2,-6" fill="none" stroke="#5B5"\n            vector-effect="non-scaling-stroke" stroke-width="5" stroke-dasharray="200"/>';
 
-    loadingAnim(document.getElementById('loadingPath'), 0);
+    loadingAnim(document.getElementById('loadingPath'), 200);
 };
 
 var loadingAnim = function loadingAnim(loadingElement, offset) {
     if (!loadedCharts.loading) {
-        document.getElementById('stockInfo').style.opacity = 1;
+        var stockInfo = document.getElementById('stockInfo');
+        stockInfo.style.opacity = 1;
+        stockInfo.style.pointerEvents = "auto";
         return;
     }
 
     loadingElement.setAttribute('stroke-dashoffset', offset);
 
     requestAnimationFrame(function () {
-        loadingAnim(loadingElement, offset - 1.5);
+        loadingAnim(loadingElement, offset - 2);
     });
 };
 
@@ -337,4 +341,14 @@ var loadingAnim = function loadingAnim(loadingElement, offset) {
     for (var i = 0; i < timespanSelButtons.length; i++) {
         _loop2(i);
     }
+
+    document.getElementById('refresh').addEventListener('click', function () {
+        if (loadedCharts.loading || !loadedCharts.currentTimespan) return;
+
+        var ts = loadedCharts.currentTimespan;
+        loadedCharts.currentTimespan = null;
+        loadedCharts[ts] = null;
+
+        loadData(ts);
+    });
 })();

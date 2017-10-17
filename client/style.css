@@ -16,7 +16,7 @@ nav{
 }
 
 #searchIcon{
-    width: 2em;
+    height: 2em;
     float: left;
     margin: 0 1em;
 }
@@ -96,16 +96,22 @@ nav{
     max-height: 100vh;
 }
 
-#visContainer{
-    width: 100%;
-    margin: 0;
-    background-color: white;
-    position: relative;
-    z-index: 3;
+#refresh{
+    position: absolute;
+    right: .5em;
+    top: .5em;
+
+    width:3em;
+
+    cursor: pointer;
+    
+    -webkit-transition: opacity .25s ease-in-out;
+    -moz-transition: opacity .25s ease-in-out;
+    transition: opacity .25s ease-in-out;
 }
 
-canvas{
-    width: 100%;
+#refresh:hover{
+    opacity: 0.85;
 }
 
 #visualization{

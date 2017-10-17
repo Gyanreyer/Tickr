@@ -73,7 +73,7 @@ const buildStockPage = (stock) =>{
     
     document.getElementById("infoSymbol").textContent = loadedCharts.symbol = stock.symbol;
     document.getElementById("infoName").textContent = stock.name;
-    
+
     document.getElementById('priceContainer').style.opacity = 0;
 
     loadData('DAY');//Get DAY data to display first
@@ -153,7 +153,9 @@ const showHoverInfo = (hoverElement) => {
 };
 
 const initLoadingAnim = ()=>{
-    document.getElementById('stockInfo').style.opacity = 0.25;
+    const stockInfo = document.getElementById('stockInfo');
+    stockInfo.style.opacity = 0.25;
+    stockInfo.style.pointerEvents = "none";
 
     const vis = document.getElementById('visualization');
 
@@ -161,22 +163,24 @@ const initLoadingAnim = ()=>{
     const midY = 100 * ((document.body.clientHeight/2) - visBoundRect.y) / visBoundRect.height;
 
     vis.innerHTML =
-        `<path id="loadingPath" d="m 47,${midY} 2,-5 1,2.5 3,-7.5" fill="none" stroke="#5B5"
-            vector-effect="non-scaling-stroke" stroke-width="5" stroke-dasharray="100"/>`;
+        `<path id="loadingPath" d="m 47.5,${midY+4.5} 2,-6 1,3 2,-6" fill="none" stroke="#5B5"
+            vector-effect="non-scaling-stroke" stroke-width="5" stroke-dasharray="200"/>`;
         
-    loadingAnim(document.getElementById('loadingPath'),0);
+    loadingAnim(document.getElementById('loadingPath'),200);
 }
 
 const loadingAnim = (loadingElement,offset) =>{
     if(!loadedCharts.loading){
-        document.getElementById('stockInfo').style.opacity = 1;
+        const stockInfo = document.getElementById('stockInfo');
+        stockInfo.style.opacity = 1;
+        stockInfo.style.pointerEvents = "auto";
         return;
     }
 
     loadingElement.setAttribute('stroke-dashoffset',offset);
 
     requestAnimationFrame(()=>{
-        loadingAnim(loadingElement,offset-1.5);
+        loadingAnim(loadingElement,offset-2);
     });
 }
 
@@ -189,4 +193,14 @@ const loadingAnim = (loadingElement,offset) =>{
             loadData(timespanSelButtons[i].id);
         });
     }
+
+    document.getElementById('refresh').addEventListener('click',()=>{
+        if(loadedCharts.loading || !loadedCharts.currentTimespan) return;
+
+        const ts = loadedCharts.currentTimespan;
+        loadedCharts.currentTimespan = null;
+        loadedCharts[ts] = null;
+
+        loadData(ts);
+    });
 })();
