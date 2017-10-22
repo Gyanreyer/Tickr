@@ -7,7 +7,30 @@
     <script src="https://d3js.org/d3.v4.min.js"></script>
 </head>
 <body>
+    <div id="favoritesContainer">
+        <div id="favorites">
+        </div>
+    </div>
+
+    <div id="loginContainer">
+        <div id="login">
+            <form id="loginForm" action="/addUser" method="post">
+                <label for="username">Username: </label>
+                <input id="usernameField" type="text" name="username" />
+                <label for="password">Password: </label>
+                <input id="passwordField" type="text" name="password" />
+            </form>
+            <div id="loginError"></div>
+            <div id="submitButtons">
+                <div id="submitLoginButton">Log in</div>
+                <div id="submitCreateButton">Create account</div>
+                <div id="cancelLoginButton">Cancel</div>
+            </div>
+        </div>
+    </div>
     
+    <div id="errorMessage"><h2>Oops.</h2><p></p></div>
+
     <div id="main">
         <nav>
             <img src="/searchIcon.png" alt="Search" id="searchIcon"/>
@@ -15,22 +38,33 @@
                 <input id="searchBar" type="text" name="search" autocomplete="off">
                 <div id="searchResults"></div>
             </div>
+            <div id="account">
+                <div id="accountButton">Log in</div>
+                <div id="accountDropdown">
+                    <div id="getFavorites">Favorites</div>
+                    <div id="logOut">Log out</div>
+                </div>
+            </div>
         </nav>
 
         <div id="stockInfo">
             <div id="nameContainer">
                 <div id="infoSymbol"></div>
-                <div id="infoName"></div>
+                <div id="infoName"></div>               
             </div>
+            <div id="favoriteButton">
+                <!--<img id="emptyHeart" src="/empty-heart.png" alt="Not favorited"/>
+                <img id="fullHeart" src="/full-heart.png" alt="Favorited"/>-->
+            </div> 
             <div id = "priceContainer">
                 <div id="infoPrice"></div>
                 <span id="infoChange"></span><span id="infoDate"></span>
             </div>
-            <img src="/refreshIcon.png" id="refresh" alt="Refresh"/>
+            <div id="refreshContainer">
+                <img src="/refreshIcon.png" id="refresh" alt="Refresh"/>
+            </div>
         </div>
-        <svg id="visualization" viewBox="0 0 100 100" preserveAspectRatio="none" >
-            
-        </svg>
+        <svg id="visualization" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
     </div>
         
     <div id="timespanSelect">

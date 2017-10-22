@@ -1,9 +1,11 @@
 const http = require('http');
 const url = require('url');
+const query = require('querystring');
 
 const clientHandler = require('./clientResponse.js');
 const searchHandler = require('./stockSearch.js');
 const stockDataHandler = require('./stockResponse.js');
+const userManager = require('./userManager.js');
 
 const port = process.env.PORT || process.env.NODE_PORT || 3000;
 
@@ -21,20 +23,29 @@ const handleGet = (request, response, parsedUrl) => {
     case '/searchIcon.png':
       clientHandler.getSearchIcon(request, response);
       break;
-    case '/logo.png':
-      clientHandler.getLogo(request, response);
-      break;
     case '/refreshIcon.png':
       clientHandler.getRefreshIcon(request, response);
       break;
+    case '/empty-heart.png':
+      clientHandler.getEmptyHeartIcon(request, response);
+      break;
+    case '/full-heart.png':
+      clientHandler.getFullHeartIcon(request, response);
+      break;
     case '/search':
-      searchHandler.getSearchResults(request, response, parsedUrl.search.slice(1));
+      searchHandler.getSearchResults(request, response, parsedUrl.query);
       break;
     case '/stockData':
       stockDataHandler.getStockData(request, response, parsedUrl.query);
       break;
     case '/stockChart':
       stockDataHandler.getStockChart(request, response, parsedUrl.query);
+      break;
+    case '/login':
+      userManager.login(request,response,parsedUrl.query);
+      break;
+    case '/getFavorites':
+      userManager.getFavorites(request,response,parsedUrl.query);
       break;
     default:
       // TODO: implement 404
@@ -53,6 +64,37 @@ const handleHead = (request, response, parsedUrl) => {
   }
 };
 
+const handlePost = (request, response, parsedUrl) => {
+  
+  const res = response;
+
+  const body = [];
+
+  request.on('error',(err)=>{
+    res.statusCode = 400;
+    res.end();
+  });
+
+  request.on('data', (chunk)=>{
+    body.push(chunk);
+  });
+
+  if(parsedUrl.pathname === '/createUser'){
+    request.on('end', ()=>{
+      const bodyString = Buffer.concat(body).toString();
+      const bodyParams = query.parse(bodyString);
+      userManager.createUser(request, res, bodyParams);
+    });
+  }  
+  else if(parsedUrl.pathname === '/updateFavorite'){
+    request.on('end', ()=>{
+      const bodyString = Buffer.concat(body).toString();
+      const bodyParams = query.parse(bodyString);
+      userManager.updateFavorite(request, res, bodyParams);
+    });
+  }
+};
+
 const onRequest = (request, response) => {
   const parsedUrl = url.parse(request.url, true);
   console.log(request.url);
@@ -61,6 +103,8 @@ const onRequest = (request, response) => {
     handleGet(request, response, parsedUrl);
   } else if (request.method === 'HEAD') {
     handleHead(request, response, parsedUrl);
+  } else if(request.method === 'POST') {
+    handlePost(request, response, parsedUrl);
   }
 };
 

@@ -2,91 +2,18 @@ body{
     font-family: sans-serif;
     padding: 0;
     margin: 0;
+    height: 100vh;
+
 }
 
 nav{
     background-color: #333;
-    padding: 10px 0;
-}
+    padding: 0.5em 2em 0.5em 1em;
 
-#logo{
-    height: 2em;
-    float: right;
-    margin-right: 1em;
-}
+    display: flex;
+    flex: 0 0 auto;
 
-#searchIcon{
-    height: 2em;
-    float: left;
-    margin: 0 1em;
-}
-
-#search{
-    display: inline;
-    position: relative;
-}
-
-#searchBar{
-    width: 500px;/*Gonna have to update via JS on browser resize*/
-    margin: 0;
-
-    border: 0;
-    padding: 0.3em;
-    outline: 1px solid #666;
-    font-size: 1.1em;
-
-    vertical-align: middle;
-}
-
-#searchResults{
-    color: #222;
-    background-color: #DDD;
-
-    font-size: 1.2em;
-
-    width:510px;
-    margin: 0;
-
-    transition: height .2s ease-in-out;
-    overflow-y: scroll;
-
-    height: 0;
-    max-height: 20em;
-
-    position: absolute;
-    box-shadow: 1px 1px 1px #444;
-
-    z-index: 5;
-    right: 0;
-}
-
-#searchResults div{
-    padding: 0.5em 10px;
-    height: 1em;
-
-    box-shadow: 0px 0px 1px #444;
-
-    cursor: pointer;
-}
-
-#searchResults div.green:hover{
-    background-color: #AEA;
-}
-
-#searchResults div.red:hover{
-    background-color: #E99;
-}
-
-.searchSymbol{
-    font-weight: bold;
-    color: #111;
-    margin-right: 1em;
-    vertical-align: middle;
-}
-
-.searchName{
-    font-size: 0.6em;  
-    vertical-align: middle;       
+    align-items: center;
 }
 
 #main{
@@ -96,22 +23,123 @@ nav{
     max-height: 100vh;
 }
 
-#refresh{
-    position: absolute;
-    right: .5em;
-    top: .5em;
-
-    width:3em;
-
-    cursor: pointer;
-    
-    -webkit-transition: opacity .25s ease-in-out;
-    -moz-transition: opacity .25s ease-in-out;
-    transition: opacity .25s ease-in-out;
+#searchIcon{
+    height: 2em;
+    margin: 0;
 }
 
-#refresh:hover{
-    opacity: 0.85;
+#search{
+    margin: 0 1em;
+    flex: 1;
+
+    max-width: 30em;
+    font-size: 1.1em;
+
+    position: relative;
+}
+
+#searchBar{
+    margin: 0;
+
+    width: 100%;
+
+    border: 0;
+    padding: 5px;
+    outline: 1px solid #666;
+
+    vertical-align: middle;
+}
+
+#searchResults{
+    color: #222;
+
+    width: calc(100% + 10px);
+
+    position: absolute;
+
+    transition: height .2s ease;
+    overflow-y: scroll;
+
+    height: 0;
+    max-height: 30em;
+
+    box-shadow: 1px 1px 1px #444;
+
+    z-index: 5;
+}
+
+#searchResults div{
+    padding: 0.5em;
+    height: 1em;
+
+    background-color: #DDD;
+
+    box-shadow: 0px 0px 1px #444;
+
+    cursor: pointer;
+
+    transition: background-color 0.25s ease;
+}
+
+#searchResults div:hover{
+    background-color: #CCC;;
+}
+
+.symbol{
+    font-weight: bold;
+    color: #111;
+    vertical-align: middle;
+}
+
+.name{
+    font-size: 0.6em;  
+    vertical-align: middle;    
+    margin-left: 1em;   
+}
+
+#account{
+    color: white;
+    font-size: 1.2em;
+
+    position: relative;
+
+    margin-left: auto;
+}
+
+#accountButton{
+    cursor: pointer;
+}
+
+#accountButton:hover{
+    color: #DDD;
+}
+
+#accountDropdown{
+    position: absolute; 
+    overflow: hidden;
+    height: 0;
+    right: 0;
+
+    font-size: .9em;
+    line-height: 1em;
+
+    color: #222;
+
+    transition: height 0.25s ease;
+}
+
+#accountDropdown div{
+    padding: 0.5em;
+    box-shadow: 0 0 1px #444;
+
+    cursor: pointer;
+
+    background-color: #DDD;
+    transition: background-color 0.25s ease;
+}
+
+#accountDropdown div:hover{
+    background-color: #CCC;
 }
 
 #visualization{
@@ -124,15 +152,37 @@ nav{
     width: 100%;
     background-color: white;
 
-    padding: 1em 0;
+    padding: 0.5em 0;
     text-align: center;
+
+    display: flex;
+    flex-direction: row;
+
+    flex: 0 0 auto;
+
+    opacity: 0;
+    pointer-events: none;
+}
+
+#stockInfo,#priceContainer{
+    transition: opacity 0.5s ease;
+}
+
+#stockInfo div{
+    align-self: center;
+}
+
+#priceContainer{
+    flex: 1;
+}
+
+#priceContainer span{
+    display: inline;
 }
 
 #nameContainer{
-    position: absolute;
-    left: 2em;
-
-    min-width: 5%;
+    flex: 0 1 auto;
+    margin: 0 2em;
 }
 
 #infoSymbol{
@@ -144,6 +194,17 @@ nav{
 
 #infoName{
     font-size: 1.2em;
+}
+
+#favoriteButton{
+    width: 2em;
+    height: 2em;
+    background-image: url('empty-heart.png');
+    background-size: cover;
+}
+
+#favoriteButton.selected{
+    background-image: url('full-heart.png');
 }
 
 #infoPrice{
@@ -159,12 +220,23 @@ nav{
     margin: 0 1em;
 }
 
-#stockInfo,#priceContainer{
-    transition: opacity 0.5s ease-in-out;
+#refreshContainer{
+    width: 3em;
+    margin: 0 2em;
 }
 
-#priceContainer span{
-    display: inline;
+#refresh{
+    width: 100%;
+
+    cursor: pointer;
+    
+    -webkit-transition: opacity .25s ease;
+    -moz-transition: opacity .25s ease;
+    transition: opacity .25s ease;
+}
+
+#refresh:hover{
+    opacity: 0.85;
 }
 
 #timespanSelect{
@@ -178,8 +250,8 @@ nav{
     
     flex: 1;
 
-    transition: color 0.25s ease-in-out;
-    -webkit-transition: color 0.25s ease-in-out;
+    transition: color 0.25s ease;
+    -webkit-transition: color 0.25s ease;
 
     z-index: 5;
 
@@ -200,4 +272,114 @@ nav{
     font-weight: bold;
     font-size: 1.4em;
     color: #222;
+}
+
+#errorMessage{
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%,-50%);
+
+    text-align: center;
+
+    color: #B55;
+    font-size: 2em;
+
+    opacity: 0; 
+    transition: opacity 0.5s ease;  
+}
+
+#errorMessage h2{
+    margin: 0;
+}
+
+#loginContainer,#favoritesContainer{
+    position: fixed;
+    width: 100%;
+    height: 100%;
+
+    z-index: 30;
+
+    background-color: rgba(100,100,100,0.8);
+    opacity: 0;
+    pointer-events: none;
+
+    transition: opacity 0.5s ease;
+}
+
+#login{
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%,-50%);
+
+    background-color: white;
+    padding: 1em;
+}
+
+#loginForm label,input{
+    display: block;
+    width: 100%;
+}
+
+#loginForm input{
+    margin-bottom: 1em;
+}
+
+#loginError{
+    height: 0;
+    overflow: hidden;
+    transition: height 0.25s ease;
+
+    color: #B55;
+}
+
+#submitButtons{
+    display: flex;
+    flex-direction: row;
+
+    margin-top: 1em;
+}
+
+#submitButtons div{
+    margin: 0 1em;
+    padding: 0.2em 1em;
+    cursor: pointer;
+    box-shadow: 1px 1px 1px #333;
+
+    background-color: #BBB;
+
+    transition: background-color 0.25s ease;
+}
+
+#submitButtons div:hover{
+    background-color: #AAA;
+}
+
+#favorites{
+    position: absolute;
+    left: 50%;
+    top: 10%;
+    transform: translateX(-50%);
+
+    min-width: 30%;
+    max-height: 80%;
+
+    overflow-y:scroll;
+
+    font-size: 1.2em;
+}
+
+#favorites div{
+    cursor: pointer;
+
+    background-color: #DDD;
+
+    transition: background-color 0.25s ease;
+
+    padding: 1em;
+}
+
+#favorites div:hover{
+    background-color: #CCC;
 }

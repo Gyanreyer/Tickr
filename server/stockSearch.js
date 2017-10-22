@@ -43,10 +43,18 @@ const sendJsonResponse = (response, code, data) => {
 };
 
 // Return search results from given search string
-const getSearchResults = (request, response, searchString) => {
+const getSearchResults = (request, response, query) => {
+  if(!query.search){
+    sendJsonResponse(response, 400,{
+        id:'badRequest',
+        message:'Valid search query required'
+    });
+    return;
+  }
+
   sendJsonResponse(response, 200, {
     // Return up to the first 20 matches from search
-    stocks: fuseSearch.search(decodeURIComponent(searchString)).slice(0, 20),
+    stocks: fuseSearch.search(decodeURIComponent(query.search)).slice(0, 20),
   });
 };
 

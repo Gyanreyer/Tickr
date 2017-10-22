@@ -1,44 +1,97 @@
-//Enum for request method being made to API
-const requestMethodEnum = {
-    get: 'GET',
-    head: 'HEAD',
-    post: 'POST'
-};
+const apiCommunicator = (() => {
+    const sendRequest = (path,callback,data)=>{
+        const dataKeys = Object.keys(data);
 
-//Enum for type of request being made to API
-const requestTypeEnum = {
-    search: 0,
-    getStockChart: 1
-};
+        if(dataKeys.length !== 0){
+            path += `?${dataKeys[0]}=${data[dataKeys[0]]}`;
 
-//Take server response and send it off to appropriate area to be handled
-const handleResponse = (xhr, responseType) => {
-    if(responseType === requestTypeEnum.search)
-        handleSearchResponse(JSON.parse(xhr.response));
-    else if(responseType === requestTypeEnum.getStockChart)
-        handleStockDataResponse(JSON.parse(xhr.response));
-};
+            for(let i = 1; i < dataKeys.length; i++){
+                path += `&${dataKeys[i]}=${data[dataKeys[i]]}`;
+            }
+        }
+        
+        const xhr = new XMLHttpRequest();
 
-//Takes what method we should use, type of request from enum,
-//and an object containing any additional params for request path
-const sendRequest = (method,requestType,parameters) => {    
-    const xhr = new XMLHttpRequest();
+        xhr.open('GET',path,true);
 
-    //If searching through stock database
-    if(requestType === requestTypeEnum.search && parameters.search){   
-        xhr.open(method,`/search?${parameters.search}`,true);
-        xhr.setRequestHeader('Accept','application/json');  
-    }
-    //If requesting a chart for a specific time period
-    else if(requestType === requestTypeEnum.getStockChart && parameters.symbol && parameters.timespan){
-        xhr.open(method,`/stockChart?symbol=${parameters.symbol}&timespan=${parameters.timespan}`,true);
-        xhr.setRequestHeader('Accept','text/html');
-    }
-    //If request type doesn't match these then something messed up, just return early
-    else return;
+        xhr.responseType = 'json';
+
+        xhr.onload = ()=>{
+            callback(xhr.status,xhr.response);
+        };
+
+        xhr.send();
+    };
     
-    //Call handleResponse when response loaded, give it the response and info on how to handle it
-    xhr.onload = ()=>handleResponse(xhr,requestType);
+    const sendPost = (path,callback,data)=>{
+        const dataKeys = Object.keys(data);
 
-    xhr.send();
-}
+        if(dataKeys.length === 0) return;
+
+        let dataString = `${dataKeys[0]}=${data[dataKeys[0]]}`;
+
+        for(let i = 1; i < dataKeys.length; i++){
+            dataString += `&${dataKeys[i]}=${data[dataKeys[i]]}`;
+        }
+
+        const xhr = new XMLHttpRequest();
+
+        xhr.open('POST',path,true);
+
+        xhr.responseType = 'json';
+        xhr.setRequestHeader('Content-type','application/x-www-form-urlencoded');
+
+        xhr.onload = ()=>{
+            callback(xhr.status,xhr.response);
+        };
+
+        xhr.send(dataString);
+    };
+
+    //Return an object with public methods for search requests and chart requests to API
+    return {
+        //Send a request to search stock database for search bar
+        sendSearchRequest: (search)=>{
+            //Return early if search string invalid
+            if(!search) return;
+
+            //Request stocks matching search string
+            sendRequest('/search',searchClient.handleSearchResponse,{search});
+        },
+        //Send a request to get an svg chart for given stock/timespan
+        sendChartRequest: (parameters)=>{
+            //Return early if params are invalid
+            if(!parameters.symbol || !parameters.timespan) return;
+
+            //Callback sets up and display svg visualization from response
+            sendRequest('/stockChart',stockClient.handleChartResponse,parameters);
+        },
+        //post to update whether stock is favorited or not
+        updateFavorite: (parameters)=>{
+            if(!parameters.symbol || !parameters.add ||
+                !parameters.user || !parameters.pass) return;
+
+            //Post new favorite status for given symbol
+            sendPost('/updateFavorite',stockClient.updateFavoriteStatus,parameters);
+        },
+        //Create a new user on server
+        createUser: (parameters)=>{
+            if(!parameters.user || !parameters.pass) return;
+
+            //Post new account w/ given username and password
+            sendPost('/createUser',loginClient.loginResponse,parameters);
+        },
+        //Send request to log into user
+        sendLogin: (parameters)=>{
+            if(!parameters.user || !parameters.pass) return;
+            //Log in with user and pass to access account
+            sendRequest('/login',loginClient.loginResponse,parameters);
+        },
+        //Get list of favorites for user
+        sendFavoritesRequest: (parameters)=>{
+            if(!parameters.user || !parameters.pass) return;
+
+            sendRequest('/getFavorites',loginClient.displayFavorites,parameters);
+        }
+    };
+})();

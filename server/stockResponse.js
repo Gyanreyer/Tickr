@@ -2,6 +2,8 @@ const Request = require('request');
 const { getStock } = require('./stockSearch.js');
 const { makeChart } = require('./svgBuilder.js');
 
+const { checkFavorite, verifyLogin } = require('./userManager.js');
+
 // An object that holds corresponding request url stems for timespan commands
 const timespanUrlStems = {
   DAY: 'INTRADAY&interval=5min',
@@ -26,8 +28,9 @@ const parseStockData = (receivedJSON, info) => {
   // as a response w/ 400 error for bad request
   if (receivedKeys.length < 2) {
     return {
-      error: true,
-      data: receivedJSON,
+      code:404,
+      stock: info.stock,
+      data: receivedJSON[receivedKeys[0]],
     };
   }
 
@@ -80,9 +83,10 @@ const parseStockData = (receivedJSON, info) => {
 
   // Return an object with response code and response object to send
   return {
-    symbol: info.stock.symbol,
-    name: info.stock.name,
+    code: 200,
+    stock: info.stock,
     timespan: info.timespan,
+    contentsOnly: info.contentsOnly,
     data,
   };
 };
@@ -113,7 +117,7 @@ const validateQueries = (queries) => {
   if (!urlStem) {
     return {
       error: true,
-      message: 'Given timespan is invalid - must be DAY, WEEK, MONTH, MONTH4, YEAR, YEAR5',
+      message: 'Given timespan is invalid - must be DAY, WEEK, MONTH, MONTH3, YEAR, YEAR5',
     };
   }
 
@@ -139,25 +143,34 @@ const getStockData = (request, response, queries) => {
     return;
   }
 
-  // Make request to alphavantage API based on queries
-  Request(`https://www.alphavantage.co/query?apikey=LA0ZIQVVE5KWHTGH&symbol=${validatedInfo.stock.symbol}&function=TIME_SERIES_${validatedInfo.urlStem}`,
-    (err, resp, body) => {
-      // If response was 200 then proceed to parse data
-      if (resp && resp.statusCode === 200) {
-        // Get an object with a response code and an object to send in response
-        const parsedData = parseStockData(JSON.parse(body), validatedInfo);
+  if(queries.user && queries.pass){
+    verifyLogin(queries.user,queries.pass,(err,res)=>{
+      validatedInfo.stock.favorite = (!err || res) &&
+        checkFavorite(validatedInfo.stock.symbol);
 
-        if (parsedData.error) {
-          // failed to get desired data from API request, send 404
-          sendJsonResponse(response, 404, parsedData.data);
-        } else {
-          sendJsonResponse(response, 200, parsedData);
-        }
-      } else {
-        // If a different code was received then write an error response
-        sendJsonResponse(response, resp ? resp.statusCode : 404, { err });
-      }
+      makeDataRequest(respose,validatedInfo);
     });
+  }
+  else{
+    makeDataRequest(response,validatedInfo);
+  }
+};
+
+const makeDataRequest = (response,validatedInfo) => {
+  // Make request to alphavantage API based on queries
+  Request(`https://www.alphavantage.co/query?function=TIME_SERIES_${validatedInfo.urlStem}&symbol=${validatedInfo.stock.symbol}&apikey=LA0ZIQVVE5KWHTGH`,
+  (err, resp, body) => {
+    // If response was 200 then proceed to parse data
+    if (resp && resp.statusCode === 200) {
+      // Get an object with a response code and an object to send in response
+      const parsedData = parseStockData(JSON.parse(body), validatedInfo);
+
+      sendJsonResponse(response, parsedData.code, parsedData);
+    } else {
+      // If a different code was received then write an error response
+      sendJsonResponse(response, resp ? resp.statusCode : 503, { error: err || "Connection failed, please try again later." });
+    }
+  });
 };
 
 // Get data as an svg element in text/html
@@ -174,8 +187,23 @@ const getStockChart = (request, response, queries) => {
     return;
   }
 
-  // Make request to alphavantage API based on queries
-  Request(`https://www.alphavantage.co/query?apikey=LA0ZIQVVE5KWHTGH&symbol=${validatedInfo.stock.symbol}&function=TIME_SERIES_${validatedInfo.urlStem}`,
+  validatedInfo.contentsOnly = (queries.contentsOnly && queries.contentsOnly.toLowerCase() === 'true');
+
+  if(queries.user && queries.pass){
+    verifyLogin(response,queries.user,queries.pass,()=>{
+      validatedInfo.stock.favorite = checkFavorite(validatedInfo.stock.symbol,queries.user);
+
+      makeChartRequest(response,validatedInfo);
+    });
+  }
+  else{
+    makeChartRequest(response,validatedInfo);
+  } 
+};
+
+const makeChartRequest = (response,validatedInfo) => {
+    // Make request to alphavantage API based on queries
+    Request(`https://www.alphavantage.co/query?function=TIME_SERIES_${validatedInfo.urlStem}&symbol=${validatedInfo.stock.symbol}&apikey=LA0ZIQVVE5KWHTGH`,
     (err, resp, body) => {
       // If response was 200 then proceed to parse data
       if (resp && resp.statusCode === 200) {
