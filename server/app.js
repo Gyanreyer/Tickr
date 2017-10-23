@@ -48,7 +48,8 @@ const handleGet = (request, response, parsedUrl) => {
       userManager.getFavorites(request,response,parsedUrl.query);
       break;
     default:
-      // TODO: implement 404
+      console.log('Not found');
+      clientHandler.getNotFound(request,response);
       break;
   }
 };

@@ -1,6 +1,7 @@
 const fs = require('fs');
 
 const index = fs.readFileSync(`${__dirname}/../client/client.html`);
+const notFound = fs.readFileSync(`${__dirname}/../client/notFound.html`);
 const css = fs.readFileSync(`${__dirname}/../client/style.css`);
 const js = fs.readFileSync(`${__dirname}/../hosted/bundle.js`);
 const search = fs.readFileSync(`${__dirname}/../hosted/searchIcon.png`);
@@ -51,6 +52,12 @@ const getFullHeartIcon = (request, response) => {
   response.end();
 };
 
+const getNotFound = (request,response) => {
+  response.writeHead(404, {'Content-Type':'text/html'});
+  response.write(notFound);
+  response.end();
+};
+
 module.exports = {
   getIndex,
   getCSS,
@@ -59,4 +66,5 @@ module.exports = {
   getRefreshIcon,
   getEmptyHeartIcon,
   getFullHeartIcon,
+  getNotFound,
 };

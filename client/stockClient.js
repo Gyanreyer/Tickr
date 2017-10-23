@@ -1,4 +1,4 @@
-//Make a module for handling displaying stock data in client
+//Make a module for handling/displaying stock data in client
 const stockClient = (()=>{
     //Enum for state of page
     const STATE = {
@@ -19,8 +19,9 @@ const stockClient = (()=>{
     const stockInfoContainer = document.getElementById('stockInfo');
     const favoriteButton = document.getElementById('favoriteButton');
 
+    const timespanSel = document.getElementById('timespanSelect');
     //Hook up timespan buttons so they load data for their timespan when clicked
-    const timespanSelButtons = document.querySelectorAll('#timespanSelect span');
+    const timespanSelButtons = timespanSel.querySelectorAll('span');
     
     for(let i = 0; i < timespanSelButtons.length; i++){
         timespanSelButtons[i].addEventListener('click',()=>{
@@ -32,19 +33,36 @@ const stockClient = (()=>{
     
     //When refresh button clicked, refresh current timespan data
     document.getElementById('refresh').addEventListener('click',()=>{
+        refreshPage();
+    });
+
+    //Refresh currently displayed chart info
+    const refreshPage = ()=>{
         //Don't refresh if currently loading or at start where nothing is selected
         if(state === STATE.LOADING || state === STATE.START) return;
-    
+
+        //Clear currently stored data and reload it 
         const ts = currentTimespan;
         currentTimespan = null;
         loadedCharts[ts] = null;
         loadData(ts);
-    });
+    }
 
+    //Update favorite status of stock when favorite button clicked
     favoriteButton.addEventListener('click',()=>{
         if(state !== STATE.LOADED) return;
 
-        loginClient.updateFavorite(loadedCharts.stock.symbol,!loadedCharts.stock.favorite);
+        const cookies = loginClient.getCookies();//Get currently stored user and pass (if they exist)
+
+        if(cookies.user&&cookies.pass){
+            //Post new favorite status to server
+            apiCommunicator.updateFavorite({
+                symbol:loadedCharts.stock.symbol,
+                add:(!loadedCharts.stock.favorite).toString(),
+                user:cookies.user,
+                pass:cookies.pass
+            });
+        }
     });
 
     //Load data for given timespan
@@ -55,9 +73,9 @@ const stockClient = (()=>{
         errorMessage.style.opacity = "0";//Hide error message
     
         //Get all buttons currently marked selected and remove their selection
-        const prevSelected = document.querySelector('.selected');
+        const prevSelected = timespanSel.querySelector('.selected');
         
-        if(prevSelected) prevSelected.removeAttribute('class');
+        if(prevSelected) prevSelected.classList.remove('selected');
     
         //Mark current timespan button as selected
         document.getElementById(timespan).className = 'selected';
@@ -74,20 +92,24 @@ const stockClient = (()=>{
     
             initLoadingAnim();//Start loading animation
     
-            const cookies = loginClient.getCookies();
+            favoriteButton.classList.remove('selected');
 
+            //Params to send as queries in request
             const requestParams = {
                 symbol: loadedCharts.stock.symbol,
                 timespan,
                 contentsOnly: true
             }
+            
+            const cookies = loginClient.getCookies();//Get cookies to check if logged in
 
+            //If currently logged in, send credentials with request to get favorite info
             if(cookies.user && cookies.pass){
                 requestParams.user = cookies.user;
                 requestParams.pass = cookies.pass;
             }
 
-            //Send request to API
+            //Send request to API for chart
             apiCommunicator.sendChartRequest(requestParams);
         }
     };
@@ -176,16 +198,15 @@ const stockClient = (()=>{
         stockInfoContainer.style.pointerEvents = "none";
     
         const visBoundRect = visualization.getBoundingClientRect();
-        const midY = 100 * ((document.body.clientHeight/2) - visBoundRect.y) / visBoundRect.height;
-    
-        const xScale = 1000/visBoundRect.width;
+        const midY = 100 * ((document.body.clientHeight/2) - visBoundRect.y) / visBoundRect.height;//Get coords to draw loading graphic in center of page
+        const xScale = 1000/visBoundRect.width;//x scale for loading graphic
 
         //Draw a path on visualization that we will animate while loading
         visualization.innerHTML =
             `<path id="loadingPath" d="m ${50-(2.5*xScale)},${midY+4.5} ${2*xScale},-6 ${xScale},3 ${2*xScale},-6" fill="none" stroke="#5B5"
                 vector-effect="non-scaling-stroke" stroke-width="5" stroke-dasharray="200"/>`;
             
-        loadingAnim(document.getElementById('loadingPath'),200);
+        loadingAnim(document.getElementById('loadingPath'),200);//Begin animating loading graphic
     };
 
     //Loop to update loading animation until data is loaded
@@ -211,6 +232,7 @@ const stockClient = (()=>{
     };
 
     return {
+        refreshPage,
         //Initialize page for new stock to display
         buildStockPage: (stock) =>{  
             if(state === STATE.LOADING) return;//Return early if currently loading something
@@ -255,22 +277,25 @@ const stockClient = (()=>{
             
                 priceContainer.style.opacity = 1;//Fade in price container
 
-                if(resp.stock.favorite){
-                    favoriteButton.className = 'selected';
-                }
+                //If user is logged in, reflect whether they favorited this stock
+                if(resp.stock.favorite)
+                    favoriteButton.classList.add('selected');
+                else
+                    favoriteButton.classList.remove('selected');
             }
         },
+        //Handle server response for updating favorite status
         updateFavoriteStatus: (code,resp)=>{
+            //Make sure response is valid
             if(code !== 200 || resp.symbol !== loadedCharts.stock.symbol) return;
 
-            loadedCharts.stock.favorite = resp.favorite;
+            loadedCharts.stock.favorite = resp.favorite;//Store new favorite status
 
-            if(loadedCharts.stock.favorite){
-                favoriteButton.className = 'selected';
-            }
-            else{
-                favoriteButton.removeAttribute('class');
-            }
+            //Update appearance of favorite button
+            if(loadedCharts.stock.favorite)
+                favoriteButton.classList.add('selected');
+            else
+                favoriteButton.classList.remove('selected');
         }
     };
 })();

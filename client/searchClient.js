@@ -1,3 +1,4 @@
+//Module for handling stock search tasks in client search bar
 const searchClient = (()=>{
     let lastWordSearched = '';
     

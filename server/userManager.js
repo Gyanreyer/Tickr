@@ -142,7 +142,7 @@ const updateFavorite = (request, response, params)=>{
 
 const checkFavorite = (symbol,user) => {
     return (user && symbol && users[user] &&
-        users[user].favorites[symbol]);
+        users[user].favorites[symbol]) ? true:false;
 };
 
 module.exports = {

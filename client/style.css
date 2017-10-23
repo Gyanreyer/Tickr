@@ -1,5 +1,5 @@
 body{
-    font-family: sans-serif;
+    font-family: Helvetica, sans-serif;
     padding: 0;
     margin: 0;
     height: 100vh;
@@ -108,10 +108,18 @@ nav{
 
 #accountButton{
     cursor: pointer;
+
+    line-height: 1em;
 }
 
 #accountButton:hover{
     color: #DDD;
+}
+
+#caret{
+    margin-left: 0.5em;
+    font-size: 0.5em;
+    vertical-align: middle;
 }
 
 #accountDropdown{
@@ -119,6 +127,8 @@ nav{
     overflow: hidden;
     height: 0;
     right: 0;
+
+    z-index: 10;
 
     font-size: .9em;
     line-height: 1em;
@@ -201,6 +211,23 @@ nav{
     height: 2em;
     background-image: url('empty-heart.png');
     background-size: cover;
+
+    opacity: 0.2;
+
+    transition: opacity 0.25s ease;
+
+    pointer-events: none;
+}
+
+#favoriteButton.loggedIn{
+    opacity: 1;
+    cursor: pointer;
+
+    pointer-events: auto;
+}
+
+#favoriteButton.loggedIn:hover{
+    opacity: 0.75;
 }
 
 #favoriteButton.selected{
@@ -371,15 +398,19 @@ nav{
 }
 
 #favorites div{
+    background-color: #DDD;
+    padding: 0.5em;
+
+    box-shadow: 0 0 1px #333;
+}
+
+#favorites .favoriteLink{
     cursor: pointer;
 
-    background-color: #DDD;
-
-    transition: background-color 0.25s ease;
-
-    padding: 1em;
+    transition: background-color 0.25s ease;    
 }
 
-#favorites div:hover{
+#favorites .favoriteLink:hover{
     background-color: #CCC;
 }
+

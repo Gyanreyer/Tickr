@@ -98,45 +98,68 @@ var apiCommunicator = function () {
 }();
 'use strict';
 
+//Module for handling user/login tasks in client
 var loginClient = function () {
 
     //Parse cookies to see if user is logged in
     var cookies = {};
-    /*const cookieString = document.cookie;
-      if (cookieString !== ''){
-        const separatedCookies = cookieString.split('; ');
-          for(let i = 0; i < separatedCookies.length; i++){
-            const cookieKeyVal = separatedCookies[i].split('=');
-            cookies[cookieKeyVal[0]] = cookieKeyVal[1];
-        }
-          //Set text of account button to match username if user is logged in
-        if(cookies.user){
-            accountButton.textContent = cookies.user;
-        }
-    }*/
 
+    //Elements we'll frequently use
     var accountButton = document.getElementById('accountButton');
     var accountDropdown = document.getElementById('accountDropdown');
-
     var loginPage = document.getElementById('loginContainer');
-    var loginForm = loginPage.querySelector('#loginForm');
-    var usernameField = loginForm.querySelector('#usernameField');
-    var passwordField = loginForm.querySelector('#passwordField');
+    var usernameField = loginPage.querySelector('#usernameField');
+    var passwordField = loginPage.querySelector('#passwordField');
     var loginError = loginPage.querySelector('#loginError');
-
-    var submitLoginButton = loginPage.querySelector('#submitLoginButton');
-    var submitCreateButton = loginPage.querySelector('#submitCreateButton');
-    var cancelLoginButton = loginPage.querySelector('#cancelLoginButton');
-
     var favoritesPage = document.getElementById('favoritesContainer');
-    var favoritesList = favoritesPage.querySelector('#favorites');
 
+    //Hide the account dropdown menu
+    var hideAccountDropdown = function hideAccountDropdown() {
+        if (accountDropdown.clientHeight > 0) accountDropdown.style.height = 0;
+    };
+
+    //Hide the login error message
+    var hideLoginError = function hideLoginError() {
+        if (loginError.clientHeight > 0) loginError.style.height = 0;
+    };
+
+    //Hide the login page
+    var hideLoginPage = function hideLoginPage() {
+        loginPage.style.opacity = 0;
+        loginPage.style.pointerEvents = 'none';
+
+        usernameField.value = passwordField.value = '';
+
+        hideLoginError();
+    };
+
+    //Hide favorites page
+    var hideFavoritesPage = function hideFavoritesPage() {
+        favoritesPage.style.opacity = 0;
+        favoritesPage.style.pointerEvents = 'none';
+    };
+
+    //Clear cookies/stored username and pass
+    var clearCookies = function clearCookies() {
+        document.cookie = 'user=;expires=Thu, 01 Jan 1970 00:00:00 GMT;';
+        document.cookie = 'pass=;expires=Thu, 01 Jan 1970 00:00:00 GMT;';
+        cookies.user = null;
+        cookies.pass = null;
+    };
+
+    //Log out of current account
     document.getElementById('logOut').addEventListener('click', function () {
-        cookies.user = '';
+        clearCookies();
+
+        //Account button will function as login button
         accountButton.textContent = 'Log in';
-        accountDropdown.style.height = 0;
+        hideAccountDropdown();
+
+        //Remove classes from favorite button b/c shouldnt' be selected or interactible
+        document.getElementById('favoriteButton').removeAttribute('class');
     });
 
+    //Get and display list of user's stored favorites
     document.getElementById('getFavorites').addEventListener('click', function () {
         apiCommunicator.sendFavoritesRequest({
             user: cookies.user,
@@ -144,39 +167,43 @@ var loginClient = function () {
         });
     });
 
-    var hideLoginPage = function hideLoginPage() {
-        loginPage.style.opacity = 0;
-        loginPage.style.pointerEvents = 'none';
-
-        loginError.style.height = 0;
-
-        usernameField.value = passwordField.value = '';
-    };
-
     //Show account page if logged in or login page if not
     accountButton.addEventListener('click', function () {
+        //If logged in, show or hide dropdown
         if (cookies.user) {
-            //Retrieve favorites, remove user cookie if account doesn't exist
-            if (accountDropdown.clientHeight > 0) accountDropdown.style.height = 0;else accountDropdown.style.height = '4em';
-        } else {
-            loginPage.style.opacity = 1;
-            loginPage.style.pointerEvents = 'auto';
+            if (accountDropdown.clientHeight === 0) accountDropdown.style.height = '4em';else hideAccountDropdown();
+        }
+        //If not logged in, show login page
+        else {
+                loginPage.style.opacity = 1;
+                loginPage.style.pointerEvents = 'auto';
+            }
+    });
+
+    //Hide account dropdown if user clicks off of it
+    document.addEventListener('click', function (e) {
+        if (e.target.parentElement.id !== 'accountDropdown') {
+            hideAccountDropdown();
         }
     });
 
-    cancelLoginButton.addEventListener('click', hideLoginPage);
+    //Hide login page if user clicks cancel
+    loginPage.querySelector('#cancelLoginButton').addEventListener('click', hideLoginPage);
 
-    submitLoginButton.addEventListener('click', function () {
-        loginError.style.height = 0;
+    //Submit login from form
+    loginPage.querySelector('#submitLoginButton').addEventListener('click', function () {
+        hideLoginError();
 
+        //This is so insecure oh god
         apiCommunicator.sendLogin({
             user: usernameField.value,
             pass: passwordField.value
         });
     });
 
-    submitCreateButton.addEventListener('click', function () {
-        loginError.style.height = 0;
+    //Post new user w/ given username and password
+    loginPage.querySelector('#submitCreateButton').addEventListener('click', function () {
+        hideLoginError();
 
         apiCommunicator.createUser({
             user: usernameField.value,
@@ -184,42 +211,74 @@ var loginClient = function () {
         });
     });
 
+    //Hide login page if user clicks off
     loginPage.addEventListener('click', function (e) {
         if (e.target !== loginPage) return;
 
         hideLoginPage();
     });
 
+    //Hide favorites page if user clicks off
     favoritesPage.addEventListener('click', function (e) {
         if (e.target !== favoritesPage) return;
 
-        favoritesPage.style.opacity = 0;
-        favoritesPage.style.pointerEvents = 'none';
+        hideFavoritesPage();
     });
 
+    //Public methods for module
     return {
+        //Get username/password cookies
         getCookies: function getCookies() {
             return cookies;
         },
+        //Handle response from login attempt
         loginResponse: function loginResponse(code, response) {
             if (response.user) {
-                //Store logged in user cookie (this is maaaaaad insecure but I just need something to work)
-                //document.cookie = `user=${response.user}`;
-                accountButton.textContent = cookies.user = response.user;
+                //Store user info in cookie for future automatic login (this whole system is maaaaaad insecure but I just need something to work)
+                document.cookie = 'user=' + response.user;
+                document.cookie = 'pass=' + response.pass;
+                cookies.user = response.user;
                 cookies.pass = response.pass;
-                hideLoginPage();
-            } else {
-                loginError.textContent = response.message;
-                loginError.style.height = '1em';
-            }
-        },
-        displayFavorites: function displayFavorites(code, response) {
-            if (code !== 200) return;
 
+                accountButton.textContent = cookies.user; //Display username in account button
+
+                //Add caret to help indicate that account button is clickable
+                var caret = document.createElement('span');
+                caret.id = 'caret';
+                caret.innerHTML = '&#9660;';
+                accountButton.appendChild(caret);
+
+                hideLoginPage();
+
+                //Make favorite button interactible
+                document.getElementById('favoriteButton').classList.add('loggedIn');
+                //Refresh stock page to display stock with favorite status from account
+                stockClient.refreshPage();
+            }
+            //If login failed, clear cookies and display error message
+            else {
+                    clearCookies();
+
+                    if (loginPage.style.opacity != 0) {
+                        loginError.textContent = response.message;
+                        loginError.style.height = '1em';
+                    }
+                }
+        },
+        //Handle received favorites list
+        displayFavorites: function displayFavorites(code, response) {
+            if (code !== 200) return; //Return if error occurred
+
+            //List element to display favorites in
+            var favoritesList = favoritesPage.querySelector('#favorites');
+
+            //Clear favorites list
             while (favoritesList.firstChild) {
                 favoritesList.removeChild(favoritesList.firstChild);
-            }var symbols = Object.keys(response);
+            } //Response format is properties of symbol:name
+            var symbols = Object.keys(response); //Get all keys/symbols from response
 
+            //If no favorites, display no results
             if (symbols.length === 0) {
                 //Create span for message
                 var message = document.createElement('span');
@@ -232,52 +291,66 @@ var loginClient = function () {
 
                 favoritesList.appendChild(favorite);
             }
+            //Otherwise, loop through all symbols and display them
+            else {
+                    var _loop = function _loop(symbol) {
+                        //Create span for symbol
+                        var symbolSpan = document.createElement('span');
+                        symbolSpan.className = 'symbol';
+                        symbolSpan.textContent = symbol;
 
-            var _loop = function _loop(symbol) {
-                //Create span for symbol
-                var symbolSpan = document.createElement('span');
-                symbolSpan.className = 'symbol';
-                symbolSpan.textContent = symbol;
+                        //Create span for name
+                        var nameSpan = document.createElement('span');
+                        nameSpan.className = 'name';
+                        nameSpan.innerHTML = response[symbol];
 
-                //Create span for name
-                var nameSpan = document.createElement('span');
-                nameSpan.className = 'name';
-                nameSpan.innerHTML = response[symbol];
+                        //Create div for list entry
+                        var favorite = document.createElement('div');
+                        favorite.className = 'favoriteLink';
+                        favorite.appendChild(symbolSpan);
+                        favorite.appendChild(nameSpan);
 
-                var favorite = document.createElement('div');
-                favorite.appendChild(symbolSpan);
-                favorite.appendChild(nameSpan);
+                        //Add click event that will load/display data for this div's stock
+                        favorite.addEventListener('click', function () {
+                            stockClient.buildStockPage({
+                                symbol: symbol,
+                                name: response[symbol]
+                            });
+                            hideFavoritesPage();
+                        });
 
-                //Add click event that will load/display data for this div's stock
-                favorite.addEventListener('click', function () {
-                    stockClient.buildStockPage({
-                        symbol: symbol,
-                        name: response[symbol]
-                    });
-                });
+                        favoritesList.appendChild(favorite);
+                    };
 
-                favoritesList.appendChild(favorite);
-            };
+                    for (var symbol in response) {
+                        _loop(symbol);
+                    }
+                }
 
-            for (var symbol in response) {
-                _loop(symbol);
-            }
-
+            //Show favorites page
             favoritesPage.style.opacity = 1;
             favoritesPage.style.pointerEvents = 'auto';
-        },
-        updateFavorite: function updateFavorite(symbol, add) {
-            apiCommunicator.updateFavorite({
-                symbol: symbol,
-                add: add.toString(),
-                user: cookies.user,
-                pass: cookies.pass
-            });
         }
     };
 }();
+
+//Check cookies and use them to attempt to log in
+if (document.cookie) {
+    var separatedCookies = document.cookie.split('; '); //Get all cookies
+
+    var cookies = {}; //Object to store cookies in
+
+    //Loop through key/val pairs and add them to cookies object
+    for (var i = 0; i < separatedCookies.length; i++) {
+        var cookieKeyVal = separatedCookies[i].split('=');
+        cookies[cookieKeyVal[0]] = cookieKeyVal[1];
+    }
+
+    apiCommunicator.sendLogin(cookies); //Attempt to login in with user and pass
+}
 'use strict';
 
+//Module for handling stock search tasks in client search bar
 var searchClient = function () {
     var lastWordSearched = '';
 
@@ -391,7 +464,7 @@ var searchClient = function () {
 }();
 'use strict';
 
-//Make a module for handling displaying stock data in client
+//Make a module for handling/displaying stock data in client
 var stockClient = function () {
     //Enum for state of page
     var STATE = {
@@ -412,8 +485,9 @@ var stockClient = function () {
     var stockInfoContainer = document.getElementById('stockInfo');
     var favoriteButton = document.getElementById('favoriteButton');
 
+    var timespanSel = document.getElementById('timespanSelect');
     //Hook up timespan buttons so they load data for their timespan when clicked
-    var timespanSelButtons = document.querySelectorAll('#timespanSelect span');
+    var timespanSelButtons = timespanSel.querySelectorAll('span');
 
     var _loop = function _loop(i) {
         timespanSelButtons[i].addEventListener('click', function () {
@@ -429,19 +503,36 @@ var stockClient = function () {
 
     //When refresh button clicked, refresh current timespan data
     document.getElementById('refresh').addEventListener('click', function () {
+        refreshPage();
+    });
+
+    //Refresh currently displayed chart info
+    var refreshPage = function refreshPage() {
         //Don't refresh if currently loading or at start where nothing is selected
         if (state === STATE.LOADING || state === STATE.START) return;
 
+        //Clear currently stored data and reload it 
         var ts = currentTimespan;
         currentTimespan = null;
         loadedCharts[ts] = null;
         loadData(ts);
-    });
+    };
 
+    //Update favorite status of stock when favorite button clicked
     favoriteButton.addEventListener('click', function () {
         if (state !== STATE.LOADED) return;
 
-        loginClient.updateFavorite(loadedCharts.stock.symbol, !loadedCharts.stock.favorite);
+        var cookies = loginClient.getCookies(); //Get currently stored user and pass (if they exist)
+
+        if (cookies.user && cookies.pass) {
+            //Post new favorite status to server
+            apiCommunicator.updateFavorite({
+                symbol: loadedCharts.stock.symbol,
+                add: (!loadedCharts.stock.favorite).toString(),
+                user: cookies.user,
+                pass: cookies.pass
+            });
+        }
     });
 
     //Load data for given timespan
@@ -452,9 +543,9 @@ var stockClient = function () {
         errorMessage.style.opacity = "0"; //Hide error message
 
         //Get all buttons currently marked selected and remove their selection
-        var prevSelected = document.querySelector('.selected');
+        var prevSelected = timespanSel.querySelector('.selected');
 
-        if (prevSelected) prevSelected.removeAttribute('class');
+        if (prevSelected) prevSelected.classList.remove('selected');
 
         //Mark current timespan button as selected
         document.getElementById(timespan).className = 'selected';
@@ -470,20 +561,24 @@ var stockClient = function () {
 
                 initLoadingAnim(); //Start loading animation
 
-                var cookies = loginClient.getCookies();
+                favoriteButton.classList.remove('selected');
 
+                //Params to send as queries in request
                 var requestParams = {
                     symbol: loadedCharts.stock.symbol,
                     timespan: timespan,
                     contentsOnly: true
                 };
 
+                var cookies = loginClient.getCookies(); //Get cookies to check if logged in
+
+                //If currently logged in, send credentials with request to get favorite info
                 if (cookies.user && cookies.pass) {
                     requestParams.user = cookies.user;
                     requestParams.pass = cookies.pass;
                 }
 
-                //Send request to API
+                //Send request to API for chart
                 apiCommunicator.sendChartRequest(requestParams);
             }
     };
@@ -574,14 +669,13 @@ var stockClient = function () {
         stockInfoContainer.style.pointerEvents = "none";
 
         var visBoundRect = visualization.getBoundingClientRect();
-        var midY = 100 * (document.body.clientHeight / 2 - visBoundRect.y) / visBoundRect.height;
-
-        var xScale = 1000 / visBoundRect.width;
+        var midY = 100 * (document.body.clientHeight / 2 - visBoundRect.y) / visBoundRect.height; //Get coords to draw loading graphic in center of page
+        var xScale = 1000 / visBoundRect.width; //x scale for loading graphic
 
         //Draw a path on visualization that we will animate while loading
         visualization.innerHTML = '<path id="loadingPath" d="m ' + (50 - 2.5 * xScale) + ',' + (midY + 4.5) + ' ' + 2 * xScale + ',-6 ' + xScale + ',3 ' + 2 * xScale + ',-6" fill="none" stroke="#5B5"\n                vector-effect="non-scaling-stroke" stroke-width="5" stroke-dasharray="200"/>';
 
-        loadingAnim(document.getElementById('loadingPath'), 200);
+        loadingAnim(document.getElementById('loadingPath'), 200); //Begin animating loading graphic
     };
 
     //Loop to update loading animation until data is loaded
@@ -607,6 +701,7 @@ var stockClient = function () {
     };
 
     return {
+        refreshPage: refreshPage,
         //Initialize page for new stock to display
         buildStockPage: function buildStockPage(stock) {
             if (state === STATE.LOADING) return; //Return early if currently loading something
@@ -652,21 +747,19 @@ var stockClient = function () {
 
                 priceContainer.style.opacity = 1; //Fade in price container
 
-                if (resp.stock.favorite) {
-                    favoriteButton.className = 'selected';
-                }
+                //If user is logged in, reflect whether they favorited this stock
+                if (resp.stock.favorite) favoriteButton.classList.add('selected');else favoriteButton.classList.remove('selected');
             }
         },
+        //Handle server response for updating favorite status
         updateFavoriteStatus: function updateFavoriteStatus(code, resp) {
+            //Make sure response is valid
             if (code !== 200 || resp.symbol !== loadedCharts.stock.symbol) return;
 
-            loadedCharts.stock.favorite = resp.favorite;
+            loadedCharts.stock.favorite = resp.favorite; //Store new favorite status
 
-            if (loadedCharts.stock.favorite) {
-                favoriteButton.className = 'selected';
-            } else {
-                favoriteButton.removeAttribute('class');
-            }
+            //Update appearance of favorite button
+            if (loadedCharts.stock.favorite) favoriteButton.classList.add('selected');else favoriteButton.classList.remove('selected');
         }
     };
 }();
