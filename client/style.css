@@ -52,33 +52,31 @@ nav{
 
 #searchResults{
     color: #222;
-
     width: calc(100% + 10px);
-
     position: absolute;
-
-    transition: height .2s ease;
     overflow-y: scroll;
-
     height: 0;
     max-height: 30em;
-
     box-shadow: 1px 1px 1px #444;
-
     z-index: 5;
+    transition: height .2s ease;
+    -webkit-transition: height .2s ease;
+    -moz-transition: height .2s ease;
+    -ms-transition: height .2s ease;
+    -o-transition: height .2s ease;
 }
 
 #searchResults div{
     padding: 0.5em;
     min-height: 1em;
-
     background-color: #DDD;
-
     box-shadow: 0px 0px 1px #444;
-
     cursor: pointer;
-
     transition: background-color 0.25s ease;
+    -webkit-transition: background-color 0.25s ease;
+    -moz-transition: background-color 0.25s ease;
+    -ms-transition: background-color 0.25s ease;
+    -o-transition: background-color 0.25s ease;
 }
 
 #searchResults div:hover{
@@ -123,29 +121,31 @@ nav{
 }
 
 #accountDropdown{
-    position: absolute; 
+    position: absolute;
     overflow: hidden;
     height: 0;
     right: 0;
-
     z-index: 10;
-
     font-size: .9em;
     line-height: 1em;
-
     color: #222;
-
     transition: height 0.25s ease;
+    -webkit-transition: height 0.25s ease;
+    -moz-transition: height 0.25s ease;
+    -ms-transition: height 0.25s ease;
+    -o-transition: height 0.25s ease;
 }
 
 #accountDropdown div{
     padding: 0.5em;
     box-shadow: 0 0 1px #444;
-
     cursor: pointer;
-
     background-color: #DDD;
     transition: background-color 0.25s ease;
+    -webkit-transition: background-color 0.25s ease;
+    -moz-transition: background-color 0.25s ease;
+    -ms-transition: background-color 0.25s ease;
+    -o-transition: background-color 0.25s ease;
 }
 
 #accountDropdown div:hover{
@@ -176,6 +176,10 @@ nav{
 
 #stockInfo,#priceContainer{
     transition: opacity 0.5s ease;
+    -webkit-transition: opacity 0.5s ease;
+    -moz-transition: opacity 0.5s ease;
+    -ms-transition: opacity 0.5s ease;
+    -o-transition: opacity 0.5s ease;
 }
 
 #stockInfo div{
@@ -211,12 +215,13 @@ nav{
     height: 2em;
     background-image: url('empty-heart.png');
     background-size: cover;
-
     opacity: 0.2;
-
-    transition: opacity 0.25s ease;
-
     pointer-events: none;
+    transition: opacity 0.25s ease;
+    -webkit-transition: opacity 0.25s ease;
+    -moz-transition: opacity 0.25s ease;
+    -ms-transition: opacity 0.25s ease;
+    -o-transition: opacity 0.25s ease;
 }
 
 #favoriteButton.loggedIn{
@@ -254,12 +259,12 @@ nav{
 
 #refresh{
     width: 100%;
-
     cursor: pointer;
-    
+    transition: opacity .25s ease;
     -webkit-transition: opacity .25s ease;
     -moz-transition: opacity .25s ease;
-    transition: opacity .25s ease;
+    -ms-transition: opacity .25s ease;
+    -o-transition: opacity .25s ease;
 }
 
 #refresh:hover{
@@ -274,19 +279,18 @@ nav{
 
 #timespanSelect span{
     cursor: pointer;
-
-    transition: color 0.25s ease;
-    -webkit-transition: color 0.25s ease;
-
     z-index: 5;
-
     float: left;
     margin-right: 1em;
     text-decoration: underline;
-
     color: #555;
-
     font-size: 1.3em;
+
+    transition: color 0.25s ease;
+    -webkit-transition: color 0.25s ease;
+    -moz-transition: color 0.25s ease;
+    -ms-transition: color 0.25s ease;
+    -o-transition: color 0.25s ease;
 }
 
 #timespanSelect span:hover{
@@ -302,16 +306,21 @@ nav{
 #errorMessage{
     position: fixed;
     left: 50%;
-    top: 50%;
-    transform: translate(-50%,-50%);
-
+    top: 50%;  
     text-align: center;
-
     color: #B55;
     font-size: 2em;
-
-    opacity: 0; 
-    transition: opacity 0.5s ease;  
+    opacity: 0;
+    transition: opacity 0.5s ease  ;
+    -webkit-transition: opacity 0.5s ease  ;
+    -moz-transition: opacity 0.5s ease  ;
+    -ms-transition: opacity 0.5s ease  ;
+    -o-transition: opacity 0.5s ease  ;
+    transform: translate(-50%,-50%);
+    -webkit-transform: translate(-50%,-50%);
+    -moz-transform: translate(-50%,-50%);
+    -ms-transform: translate(-50%,-50%);
+    -o-transform: translate(-50%,-50%);
 }
 
 #errorMessage h2{
@@ -322,24 +331,28 @@ nav{
     position: fixed;
     width: 100%;
     height: 100%;
-
     z-index: 30;
-
     background-color: rgba(100,100,100,0.8);
     opacity: 0;
     pointer-events: none;
-
     transition: opacity 0.5s ease;
+    -webkit-transition: opacity 0.5s ease;
+    -moz-transition: opacity 0.5s ease;
+    -ms-transition: opacity 0.5s ease;
+    -o-transition: opacity 0.5s ease;
 }
 
 #login{
     position: absolute;
     left: 50%;
     top: 50%;
-    transform: translate(-50%,-50%);
-
     background-color: white;
     padding: 1em;
+    transform: translate(-50%,-50%);
+    -webkit-transform: translate(-50%,-50%);
+    -moz-transform: translate(-50%,-50%);
+    -ms-transform: translate(-50%,-50%);
+    -o-transform: translate(-50%,-50%);
 }
 
 #loginForm label,input{
@@ -354,9 +367,12 @@ nav{
 #loginError{
     height: 0;
     overflow: hidden;
-    transition: height 0.25s ease;
-
     color: #B55;
+    transition: height 0.25s ease; 
+    -webkit-transition: height 0.25s ease;
+    -moz-transition: height 0.25s ease;
+    -ms-transition: height 0.25s ease;
+    -o-transition: height 0.25s ease;
 }
 
 #submitButtons{
@@ -371,10 +387,12 @@ nav{
     padding: 0.2em 1em;
     cursor: pointer;
     box-shadow: 1px 1px 1px #333;
-
     background-color: #BBB;
-
     transition: background-color 0.25s ease;
+    -webkit-transition: background-color 0.25s ease;
+    -moz-transition: background-color 0.25s ease;
+    -ms-transition: background-color 0.25s ease;
+    -o-transition: background-color 0.25s ease;
 }
 
 #submitButtons div:hover{
@@ -384,15 +402,16 @@ nav{
 #favorites{
     position: absolute;
     left: 50%;
-    top: 10%;
-    transform: translateX(-50%);
-
+    top: 10%;  
     min-width: 30%;
     max-height: 80%;
-
     overflow-y:scroll;
-
     font-size: 1.2em;
+    transform: translateX(-50%);
+    -webkit-transform: translateX(-50%);
+    -moz-transform: translateX(-50%);
+    -ms-transform: translateX(-50%);
+    -o-transform: translateX(-50%);
 }
 
 #favorites div{
@@ -404,8 +423,11 @@ nav{
 
 #favorites .favoriteLink{
     cursor: pointer;
-
-    transition: background-color 0.25s ease;    
+    transition:background-color 0.25s ease;
+    -webkit-transition:background-color 0.25s ease;
+    -moz-transition:background-color 0.25s ease;
+    -ms-transition:background-color 0.25s ease;
+    -o-transition:background-color 0.25s ease;
 }
 
 #favorites .favoriteLink:hover{
