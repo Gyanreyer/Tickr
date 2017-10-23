@@ -21,7 +21,7 @@ const sendResponse = (response, code, data) => {
   response.end();
 };
 
-//Parse data received from AlphaVantage
+// Parse data received from AlphaVantage
 const parseStockData = (receivedJSON, info) => {
   const receivedKeys = Object.keys(receivedJSON);
 
@@ -29,7 +29,7 @@ const parseStockData = (receivedJSON, info) => {
   // as a response w/ 404 error b/c failed to find data
   if (receivedKeys.length < 2) {
     return {
-      code:404,
+      code: 404,
       stock: info.stock,
       data: receivedJSON[receivedKeys[0]],
     };
@@ -92,7 +92,7 @@ const parseStockData = (receivedJSON, info) => {
   };
 };
 
-//Validate received queries for data/chart request
+// Validate received queries for data/chart request
 const validateQueries = (queries) => {
   // Return an error if missing queries
   if (!queries.timespan || !queries.symbol) {
@@ -102,7 +102,7 @@ const validateQueries = (queries) => {
     };
   }
 
-  //Verify that symbol is a valid stock in db
+  // Verify that symbol is a valid stock in db
   const stock = getStock(queries.symbol);
 
   if (!stock) {
@@ -112,7 +112,7 @@ const validateQueries = (queries) => {
     };
   }
 
-  stock.favorite = false;//Favorite status defaults to false
+  stock.favorite = false;// Favorite status defaults to false
 
   // Get timespan from queries for request
   const timespan = queries.timespan.toUpperCase();
@@ -134,12 +134,29 @@ const validateQueries = (queries) => {
   };
 };
 
+const makeDataRequest = (response, validatedInfo) => {
+  // Make request to alphavantage API based on queries
+  Request(`https://www.alphavantage.co/query?function=TIME_SERIES_${validatedInfo.urlStem}&symbol=${validatedInfo.stock.symbol}&apikey=LA0ZIQVVE5KWHTGH`,
+    (err, resp, body) => {
+    // If response was 200 then proceed to parse data
+      if (resp && resp.statusCode === 200) {
+      // Get an object with a response code and an object to send in response
+        const parsedData = parseStockData(JSON.parse(body), validatedInfo);
+
+        sendResponse(response, parsedData.code, parsedData);
+      } else {
+      // If a different code was received then write an error response
+        sendResponse(response, resp ? resp.statusCode : 503, { error: err || 'Connection failed, please try again later.' });
+      }
+    });
+};
+
 // Get data as json object
 const getStockData = (request, response, queries) => {
   // Validate queries and get back object with them formatted nicely
   const validatedInfo = validateQueries(queries);
 
-  //If there's an error in validated info, send bad request
+  // If there's an error in validated info, send bad request
   if (validatedInfo.error) {
     sendResponse(response, 400, {
       id: 'badRequest',
@@ -148,73 +165,22 @@ const getStockData = (request, response, queries) => {
     return;
   }
 
-  //If username and password included in queries, verify login
-  if(queries.user && queries.pass){
-    verifyLogin(response,queries.user,queries.pass,(err,res)=>{
-      //Check whether user has favorited this stock
+  // If username and password included in queries, verify login
+  if (queries.user && queries.pass) {
+    verifyLogin(response, queries.user, queries.pass, () => {
+      // Check whether user has favorited this stock
       validatedInfo.stock.favorite = checkFavorite(validatedInfo.stock.symbol);
 
-      makeDataRequest(respose,validatedInfo);//Make data request
+      makeDataRequest(response, validatedInfo);// Make data request
     });
-  }
-  else{
-    makeDataRequest(response,validatedInfo);//Make data request w/o login
+  } else {
+    makeDataRequest(response, validatedInfo);// Make data request w/o login
   }
 };
 
-const makeDataRequest = (response,validatedInfo) => {
+const makeChartRequest = (response, validatedInfo) => {
   // Make request to alphavantage API based on queries
   Request(`https://www.alphavantage.co/query?function=TIME_SERIES_${validatedInfo.urlStem}&symbol=${validatedInfo.stock.symbol}&apikey=LA0ZIQVVE5KWHTGH`,
-  (err, resp, body) => {
-    // If response was 200 then proceed to parse data
-    if (resp && resp.statusCode === 200) {
-      // Get an object with a response code and an object to send in response
-      const parsedData = parseStockData(JSON.parse(body), validatedInfo);
-
-      sendResponse(response, parsedData.code, parsedData);
-    } else {
-      // If a different code was received then write an error response
-      sendResponse(response, resp ? resp.statusCode : 503, { error: err || "Connection failed, please try again later." });
-    }
-  });
-};
-
-// Get data as an svg element in text/html
-const getStockChart = (request, response, queries) => {
-  // Validate queries and get back object with them formatted nicely
-  const validatedInfo = validateQueries(queries);
-
-  //If there's an error in validated info, send bad request
-  if (validatedInfo.error) {
-    sendResponse(response, 400, {
-      id: 'badRequest',
-      message: validatedInfo.message,
-    });
-    return;
-  }
-
-  //Check queries if only want contents of svg or full element
-  //For my purposes, I always want contents only
-  validatedInfo.contentsOnly = 
-    (queries.contentsOnly && queries.contentsOnly.toLowerCase() === 'true');
-
-  //If username and password included in queries, verify login
-  if(queries.user && queries.pass){
-    verifyLogin(response,queries.user,queries.pass,()=>{
-      //Check whether user has favorited this stock
-      validatedInfo.stock.favorite = checkFavorite(validatedInfo.stock.symbol,queries.user);
-
-      makeChartRequest(response,validatedInfo);//Make chart request
-    });
-  }
-  else{
-    makeChartRequest(response,validatedInfo);//Make chart request w/o login
-  } 
-};
-
-const makeChartRequest = (response,validatedInfo) => {
-    // Make request to alphavantage API based on queries
-    Request(`https://www.alphavantage.co/query?function=TIME_SERIES_${validatedInfo.urlStem}&symbol=${validatedInfo.stock.symbol}&apikey=LA0ZIQVVE5KWHTGH`,
     (err, resp, body) => {
       // If response was 200 then proceed to parse data
       if (resp && resp.statusCode === 200) {
@@ -227,6 +193,38 @@ const makeChartRequest = (response,validatedInfo) => {
         sendResponse(response, resp ? resp.statusCode : 404, { err });
       }
     });
+};
+
+// Get data as an svg element in text/html
+const getStockChart = (request, response, queries) => {
+  // Validate queries and get back object with them formatted nicely
+  const validatedInfo = validateQueries(queries);
+
+  // If there's an error in validated info, send bad request
+  if (validatedInfo.error) {
+    sendResponse(response, 400, {
+      id: 'badRequest',
+      message: validatedInfo.message,
+    });
+    return;
+  }
+
+  // Check queries if only want contents of svg or full element
+  // For my purposes, I always want contents only
+  validatedInfo.contentsOnly =
+    (queries.contentsOnly && queries.contentsOnly.toLowerCase() === 'true');
+
+  // If username and password included in queries, verify login
+  if (queries.user && queries.pass) {
+    verifyLogin(response, queries.user, queries.pass, () => {
+      // Check whether user has favorited this stock
+      validatedInfo.stock.favorite = checkFavorite(validatedInfo.stock.symbol, queries.user);
+
+      makeChartRequest(response, validatedInfo);// Make chart request
+    });
+  } else {
+    makeChartRequest(response, validatedInfo);// Make chart request w/o login
+  }
 };
 
 module.exports = {

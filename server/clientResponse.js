@@ -41,19 +41,19 @@ const getRefreshIcon = (request, response) => {
 };
 
 const getEmptyHeartIcon = (request, response) => {
-  response.writeHead(200, {'Content-Type': 'image/png'});
+  response.writeHead(200, { 'Content-Type': 'image/png' });
   response.write(emptyHeart);
   response.end();
 };
 
 const getFullHeartIcon = (request, response) => {
-  response.writeHead(200, {'Content-Type': 'image/png'});
+  response.writeHead(200, { 'Content-Type': 'image/png' });
   response.write(fullHeart);
   response.end();
 };
 
-const getNotFound = (request,response) => {
-  response.writeHead(404, {'Content-Type':'text/html'});
+const getNotFound = (request, response) => {
+  response.writeHead(404, { 'Content-Type': 'text/html' });
   response.write(notFound);
   response.end();
 };

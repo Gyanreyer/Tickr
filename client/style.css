@@ -70,7 +70,7 @@ nav{
 
 #searchResults div{
     padding: 0.5em;
-    height: 1em;
+    min-height: 1em;
 
     background-color: #DDD;
 
@@ -274,8 +274,6 @@ nav{
 
 #timespanSelect span{
     cursor: pointer;
-    
-    flex: 1;
 
     transition: color 0.25s ease;
     -webkit-transition: color 0.25s ease;
@@ -414,3 +412,53 @@ nav{
     background-color: #CCC;
 }
 
+
+@media only screen and (max-width: 1000px){
+    #priceContainer span{
+        display: block;
+    }
+
+    #login,#favorites{
+        width: 60%;
+    }
+    #submitButtons div{
+        margin: auto;
+    }
+}
+
+@media only screen and (max-width: 500px) {
+    body {
+        font-size: 0.8em;
+    }
+
+    nav{
+        padding-right: 0.5em;
+    }
+
+    #timespanSelect {
+        display: flex;
+        flex-direction: row;
+        left: 0;
+        width: 100%;
+    }
+    #timespanSelect span{
+        margin: auto;
+        float: none;
+        text-align: center;
+    }
+
+    #nameContainer{
+        margin: 0 0.5em 0 1em;
+    }
+    #refreshContainer{
+        margin: 0 1em 0 0.5em;
+    }
+
+    #login,#favorites{
+        width: 80%;
+    }
+
+    #searchResults{
+        font-size: 1.3em;
+    }
+}

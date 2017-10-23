@@ -44,10 +44,10 @@ const sendJsonResponse = (response, code, data) => {
 
 // Return search results from given search string
 const getSearchResults = (request, response, query) => {
-  if(!query.search){
-    sendJsonResponse(response, 400,{
-        id:'badRequest',
-        message:'Valid search query required'
+  if (!query.search) {
+    sendJsonResponse(response, 400, {
+      id: 'badRequest',
+      message: 'Valid search query required',
     });
     return;
   }
@@ -62,7 +62,7 @@ const getSearchResults = (request, response, query) => {
 const getSearchResultsMeta = (request, response, searchString) => {
   const matchFound = fuseSearch.search(searchString).length > 0;
 
-  return sendJsonResponse(response, matchFound ? 200 : 204);
+  return sendJsonResponse(response, matchFound ? 200 : 404);
 };
 
 // Search stock list by symbol and return corresponding stock's

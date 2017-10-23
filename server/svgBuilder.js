@@ -1,7 +1,5 @@
-//Limit floats to 4 decimal places to cut down on size of response!
-const roundFloat = (num) => {
-  return parseFloat(num.toFixed(4));
-};
+// Limit floats to 4 decimal places to cut down on size of response!
+const roundFloat = num => parseFloat(num.toFixed(4));
 
 // Construct a visualization of the data by making an svg element in text/html format
 const makeChart = (dataObject) => {
@@ -47,23 +45,23 @@ const makeChart = (dataObject) => {
 
     pointString += `${roundFloat(xDist * (i + 0.5))},${roundFloat(50 - ((price - midPt) * range))} `;
 
-    hoverzonesString += `<rect class='hoverZone${i === dataLength - 1 ? ' end' : ''}'`+
-        `width='${xDist}' height='100' pointer-events='fill' visibility='hidden' x='${xDist * i}' y='0'`+
+    hoverzonesString += `<rect class='hoverZone${i === dataLength - 1 ? ' end' : ''}'` +
+        `width='${xDist}' height='100' pointer-events='fill' visibility='hidden' x='${xDist * i}' y='0'` +
         `data-stockprice='${price.toFixed(2)}' data-timestamp='${data[i].timestamp}'/>`;
   }
 
   pointString += `100,${roundFloat(50 - ((data[dataLength - 1].price - midPt) * range))}`;
 
-  let htmlString = `<line vector-effect='non-scaling-stroke' stroke-dasharray='10,10' stroke-width='2'`+
-            `stroke='#999' x1='0' y1='${openingLineY}' x2='100' y2='${openingLineY}'/>`+
-        `<polyline fill='none' vector-effect='non-scaling-stroke' stroke-width='2'`+
-            `stroke='${strokeColor}' points='${pointString}'/>`+
-        `<g>${hoverzonesString}</g>`+
-        `<line id='hoverLine' vector-effect='non-scaling-stroke' stroke-width='2'`+
-            `stroke='#777' y1='0' y2='100' visibility='hidden'/>`;
+  let htmlString = '<line vector-effect=\'non-scaling-stroke\' stroke-dasharray=\'10,10\' stroke-width=\'2\'' +
+            `stroke='#999' x1='0' y1='${openingLineY}' x2='100' y2='${openingLineY}'/>` +
+        '<polyline fill=\'none\' vector-effect=\'non-scaling-stroke\' stroke-width=\'2\'' +
+            `stroke='${strokeColor}' points='${pointString}'/>` +
+        `<g>${hoverzonesString}</g>` +
+        '<line id=\'hoverLine\' vector-effect=\'non-scaling-stroke\' stroke-width=\'2\'' +
+            'stroke=\'#777\' y1=\'0\' y2=\'100\' visibility=\'hidden\'/>';
 
-  //If not just returning contents, add svg container element to surround it
-  if(!dataObject.contentsOnly){
+  // If not just returning contents, add svg container element to surround it
+  if (!dataObject.contentsOnly) {
     htmlString = `<svg id='visualization' viewBox='0 0 100 100' preserveAspectRatio='none'>${htmlString}</svg>`;
   }
 
